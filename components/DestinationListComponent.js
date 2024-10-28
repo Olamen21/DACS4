@@ -75,6 +75,7 @@ const styles = StyleSheet.create({
   recentText: {
     fontSize: 17,
     fontWeight: 'bold',
+    color:'black'
   },
 });
 

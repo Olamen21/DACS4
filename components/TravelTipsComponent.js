@@ -5,6 +5,7 @@ import { View,
           StyleSheet,
           TouchableOpacity,
           Image } from 'react-native';
+import COLORS from '../style/Colors';
 
 const travelTips = [
   { id: '1', title: 'How to Pack Efficiently for a Trip'  , image: require('../img/maxresdefault.jpg'), summary: 'Learn how to pack everything you need without overpacking.'   },
@@ -49,6 +50,7 @@ const styles = StyleSheet.create({
   recentText: {
     fontSize  : 17    ,
     fontWeight: 'bold',
+    color:COLORS.black,
   },
   seeAllText: {
     fontSize: 17       ,

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, FlatList, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import COLORS from '../style/Colors';
 
 const RecentSearchesComponent = ({ recentSearches, setRecentSearches, showAllRecent, toggleShowAllRecent }) => {
   const handleRemoveSearch = (searchTerm) => {
@@ -52,6 +53,7 @@ const styles = StyleSheet.create({
   recentText: {
     fontSize: 17,
     fontWeight: 'bold',
+    color:COLORS.black
   },
   seeAllText: {
     fontSize: 17,
@@ -75,6 +77,7 @@ const styles = StyleSheet.create({
   },
   recentItemText: {
     fontSize: 16,
+    
   },
   removeButton: {
     paddingLeft: 10, // Khoảng cách giữa text và dấu "X"
