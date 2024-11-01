@@ -4,42 +4,28 @@ import COLORS from '../style/Colors'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Icon from 'react-native-vector-icons/Ionicons'
 import Button from '../components/Button'
-// import { db,  collection, addDoc, getDocs, where, query, FIREBASE_AUTH, setDoc, doc, provider, signInWithPopup} from '../firebase/index'
-// import { UserContext } from '../components/UserContext'
-// import { createUserWithEmailAndPassword } from 'firebase/auth'
-// import { GoogleSignin } from '@react-native-google-signin/google-signin';
-// import auth from '@react-native-firebase/auth';
+
+
 
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 const Signup = ({navigation}) => {
-// const Signup = () => {
-  // const { users, setUser } = useContext(UserContext);
 
-  
-  
-  // useEffect(()=>{
-  //   GoogleSignin.configure({
-  //     webClientId: '591794021020-efjk9hjfccq6m942e5mf4osn46los7to.apps.googleusercontent.com',
-  //   });
-  // },[])
-
-  // const [USERNAME, SETUSERNAME]= useState("");
-  // const [EMAIL, SETEMAIL] = useState("");
-  // const [PHONE, SETPHONE] = useState("");
-  // const [PASSWORD, SETPASSWORD] = useState("");
+  const [USERNAME, SETUSERNAME]= useState("");
+  const [EMAIL, SETEMAIL] = useState("");
+  const [PASSWORD, SETPASSWORD] = useState("");
 
   const [isPasswordShown, setIsPasswordShown] = useState(false);
   const [isChecked,setIsChecked] = useState(false);
 
 
-  // //validate email
-  // const [emailError, setEmailError] = useState('');
-  // //validate phone
-  // const [passError, setPassError] = useState('');
-  // //validate username
-  // const [usernameError, setUsernameError] = useState('');
+  //validate email
+  const [emailError, setEmailError] = useState('');
+  //validate phone
+  const [passError, setPassError] = useState('');
+  //validate username
+  const [usernameError, setUsernameError] = useState('');
 
   
   const handleCheckboxPress = () => {
@@ -153,90 +139,7 @@ const Signup = ({navigation}) => {
   //   }
     
   // }
-  // async function onGoogleButtonPress() {
-  //   try {
-  //     // Đăng xuất tài khoản hiện tại
-  //     await GoogleSignin.signOut();
-  
-  //     // Hiển thị khung để chọn tài khoản Google cần đăng nhập
-  //     const { idToken, user } = await GoogleSignin.signIn();
-  //     // Tạo Google credential với token
-  //     const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-  //     const userCredential = await auth().signInWithCredential(googleCredential);
-  //     const firebaseUser = userCredential.user;
-  //     console.log(firebaseUser.uid)
-
-     
-
-  //     const userRef = doc(db, 'users', firebaseUser.uid);
-  //       await setDoc(userRef, {
-  //         email: user.email,
-  //         username: user.name,
-  //         password: "null",
-  //         gender: null,
-  //         phone: "your phone number",
-  //         profileImage: user.photo,
-  //       });
-
-  //     const levelsRef = collection(userRef, 'level');
-  //     await setDoc(doc(levelsRef, '1'), {
-  //         completed: false,
-  //         isPlayed: true
-
-  //     });
-  //     await setDoc(doc(levelsRef, '2'), {
-  //       completed: false,
-  //       isPlayed: false,
-  //     });
-  //     await setDoc(doc(levelsRef, '3'), {
-  //       completed: false,
-  //       isPlayed: false,
-  //     });
-  //     await setDoc(doc(levelsRef, '4'), {
-  //       completed: false,
-  //       isPlayed: false,
-  //     });
-  //     await setDoc(doc(levelsRef, '5'), {
-  //       completed: false,
-  //       isPlayed: false,
-  //     });
-  //     await setDoc(doc(levelsRef, '6'), {
-  //       completed: false,
-  //       isPlayed: false,
-  //     });
-  //     await setDoc(doc(levelsRef, '7'), {
-  //       completed: false,
-  //       isPlayed: false,
-  //     });
-  //     await setDoc(doc(levelsRef, '8'), {
-  //       completed: false,
-  //       isPlayed: false,
-  //     });
-  //     await setDoc(doc(levelsRef, '9'), {
-  //       completed: false,
-  //       isPlayed: false,
-  //     });
-     
-
-  //     console.log("User registered and data saved to Firestore.");
-  //     console.log(firebaseUser.uid)
-      
-  //     const fetchedUserId = firebaseUser.uid; 
-  //     setUser((prevUser) => ({
-  //       ...prevUser,
-  //       userId: fetchedUserId,
-  //       email: user.email,
-  //       username: user.name,
-  //       profileImage: user.photo
-  //     }));
-  //     navigation.navigate("AppStack")
-  //     // Đăng nhập người dùng với credential
-  //     return auth().signInWithCredential(googleCredential);
-      
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // }
+ 
 
 
 return (
@@ -244,7 +147,7 @@ return (
     <View style={{flex: 1, marginHorizontal:20, top:windowWidth*0.04}}>
       <View >
         <Text style={styles.TextCreatAccount}>Create Account</Text>
-        <Text style={styles.TextSlogan}>Keithston Hotel: Book with Ease, Stay in Style!a</Text>
+        <Text style={styles.TextSlogan}>Keithston Hotel: Book with Ease, Stay in Style!</Text>
       </View>
 
       <View style={{marginBottom: 8}}>
