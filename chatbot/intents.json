@@ -1,0 +1,20 @@
+{
+  "intents": [
+      {
+      "tag": "greeting",
+      "patterns": ["Hi", "Hello", "How are you?", "Good morning", "Good evening"],
+      "responses": ["Hello!", "Hi there!", "Greetings! How can I assist you?"]
+      },
+      {
+      "tag": "room_availability",
+      "patterns": ["Do you have rooms available?", "Is there any room free?", "Room availability"],
+      "responses": ["Yes, we have rooms available. May I know the date you want to book?"]
+      },
+      {
+      "tag": "book_room",
+      "patterns": ["I want to book a room", "Reserve a room", "Book room"],
+      "responses": ["Sure, I can help you with that. Please provide your details."]
+      }
+  ]
+  }
+      

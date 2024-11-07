@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import {  View              ,
           StyleSheet        ,
           FlatList          ,
-          TouchableOpacity  ,
-          Image
         } from 'react-native';
 import {  SearchBarComponent      ,
           RecentSearchesComponent ,
@@ -31,10 +29,6 @@ const Home = () => {
 
   const toggleShowAllTravelTips = () => {
     setShowAllTravelTips(!showAllTravelTips);
-  };
-
-  const handleChatbotPress = () => {
-    alert("Chatbot is pressed");
   };
 
   return (
@@ -79,11 +73,6 @@ const Home = () => {
         keyExtractor={(item) => item.key}
         contentContainerStyle={styles.flatListContent}
       />
-
-      {/* Chatbot */}
-      <TouchableOpacity style={styles.chatBotIconContainer} onPress={handleChatbotPress}>
-        <Image source={require('../img/chatbot.png')} style={styles.imgChatBot}/>
-      </TouchableOpacity>
     </View>
   );
 };
