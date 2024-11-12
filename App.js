@@ -6,6 +6,7 @@ import Login from './screen/Login';
 import Signup from './screen/Signup';
 // import Signup_upImg from './src/Signup_upImg';
 import AppStack from './components/AppStack'; // Import AppStack
+import { RoomDetail } from './screen';
 // import { UserProvider } from './components/UserContext'; // Import the UserProvider
 
 const Stack = createNativeStackNavigator();
