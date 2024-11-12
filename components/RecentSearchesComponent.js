@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   recentText: {
     fontSize: 17,
     fontWeight: 'bold',
-    color:COLORS.black
+    color:COLORS.black,
   },
   seeAllText: {
     fontSize: 17,

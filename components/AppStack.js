@@ -11,6 +11,7 @@ import {
   ChangePass,
   History,
   ChatBot,
+  FindSearchScreen,
 } from '../screen';
 
 const Tab = createBottomTabNavigator();
@@ -38,10 +39,22 @@ const AppStack = () => {
       name="History"
       component={History}
       options={{ headerShown: false }} // Hiện header cho EditProfile
-        />
+      />
     </Stack.Navigator>
+
   );
 };
+
+function HomeStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name='HomeMain'   component={Home}/>
+      <Stack.Screen name='FindSearch' component={FindSearchScreen}/>
+    </Stack.Navigator>
+  );
+}
+
+
 
 // Tạo một component riêng cho Tab Navigator
 const MainTab = () => {
@@ -62,7 +75,7 @@ const MainTab = () => {
               iconName = 'calendar';
               break;
             case 'ChatBot':
-              iconName = 'wechat';
+              iconName = 'comments';
               break;
             case 'Profile':
               iconName = 'user';
@@ -84,11 +97,11 @@ const MainTab = () => {
         },
       })}
     >
-      <Tab.Screen name="Home" component={Home} options={{ tabBarLabel: 'Home' }} />
-      <Tab.Screen name="Favourite" component={Favourite} options={{ tabBarLabel: 'Favourite' }} />
-      <Tab.Screen name="Booking" component={Booking} options={{ tabBarLabel: 'Booking' }} />
-      <Tab.Screen name="ChatBot" component={ChatBot} options={{ tabBarLabel: 'Chatbot' }} />
-      <Tab.Screen name="Profile" component={Profile} options={{ tabBarLabel: 'Profile' }} />
+      <Tab.Screen name="Home"         component={HomeStack}     options={{ tabBarLabel: 'Home' }}           />
+      <Tab.Screen name="Favourite"    component={Favourite}     options={{ tabBarLabel: 'Favourite' }}      />
+      <Tab.Screen name="Booking"      component={Booking}       options={{ tabBarLabel: 'Booking' }}        />
+      <Tab.Screen name="ChatBot"      component={ChatBot}       options={{ tabBarLabel: 'Chatbot' }}        />
+      <Tab.Screen name="Profile"      component={Profile}       options={{ tabBarLabel: 'Profile' }}        />
     </Tab.Navigator>
   );
 };

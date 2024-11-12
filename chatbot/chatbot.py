@@ -2,6 +2,7 @@ import random
 import json
 import pickle
 import numpy as np
+import re
 
 import nltk
 from nltk.stem import WordNetLemmatizer
@@ -44,14 +45,26 @@ def predict_class(sentence):
 
 	return return_list
 
-def get_response(intents_list, intents_json):
-	tag = intents_list[0]['intent']
-	list_of_intents = intents_json['intents']
-	for i in list_of_intents:
-		if i['tag'] == tag:
-			result = random.choice(i['responses'])
-			break
-	return result
+def extract_location(message):
+    # Định nghĩa các mẫu location hoặc tên thành phố
+    locations = ["New York", "Los Angeles", "Paris", "Tokyo"]  # Thêm vào các địa điểm có thể khác
+    for location in locations:
+        if re.search(r'\b' + re.escape(location) + r'\b', message, re.IGNORECASE):
+            return location
+    return None
+
+def get_response(intents_list, intents_json, message):
+    tag = intents_list[0]['intent']
+    location = extract_location(message)  # Trích xuất location từ tin nhắn
+    list_of_intents = intents_json['intents']
+    for i in list_of_intents:
+        if i['tag'] == tag:
+            if location:
+                result = random.choice(i['responses']).replace("{location}", location)
+            else:
+                result = random.choice(i['responses'])
+            break
+    return result
 
 @app.route("/chatbot", methods=["POST"])
 def chatbot_response():
@@ -62,7 +75,7 @@ def chatbot_response():
 
     # Predict class and get response
     ints = predict_class(message)
-    res = get_response(ints, intents)
+    res = get_response(ints, intents, message)
     return jsonify({"response": res})
 
 if __name__ == "__main__":
