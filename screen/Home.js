@@ -86,19 +86,6 @@ const styles = StyleSheet.create({
     margin: 10,
     flex: 1,
   },
-  chatBotIconContainer: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    width: 70,
-    height: 70,
-    justifyContent: 'center',
-    alignContent: 'center',
-  },
-  imgChatBot: {
-    width: 70,
-    height: 70,
-  },
 });
 
 export default Home;
