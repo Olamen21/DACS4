@@ -3,8 +3,8 @@ import json
 import pickle
 import numpy as np
 
-import nltk
 from nltk.stem import WordNetLemmatizer
+from pyvi import ViTokenizer
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation, Dropout
@@ -13,7 +13,7 @@ from sklearn.utils import shuffle
 
 lemmatizer = WordNetLemmatizer()
 
-intents = json.loads(open('../chatbot/intents.json').read())
+intents = json.loads(open('intents.json', encoding='utf-8').read())
 
 words = []
 classes = []
@@ -22,7 +22,7 @@ ignore_letters = ['?','!','.',',']
 
 for intent in intents['intents']:
     for pattern in intent['patterns']:
-        word_list = nltk.word_tokenize(pattern)
+        word_list = ViTokenizer.tokenize(pattern).split()
         word_list = [lemmatizer.lemmatize(w.lower()) for w in word_list if w not in ignore_letters]
         words.extend(word_list)
         documents.append((word_list, intent['tag']))
@@ -42,16 +42,16 @@ training_output_row = []
 output_empty = [0] * len(classes)
 
 for document in documents:
-   bag = []
-   word_patterns = document[0]
-   word_patterns = [lemmatizer.lemmatize(word.lower()) for word in word_patterns]
-   for word in words:
-      bag.append(1) if word in word_patterns else bag.append(0)
-
-      output_row = list(output_empty)
-      output_row[classes.index(document[1])] = 1
-      training_bag.append(bag)
-      training_output_row.append(output_row)
+    bag = []
+    word_patterns = document[0]
+    word_patterns = [lemmatizer.lemmatize(word.lower()) for word in word_patterns]
+    for word in words:
+        bag.append(1) if word in word_patterns else bag.append(0)
+    training_bag.append(bag)
+    
+    output_row = list(output_empty)
+    output_row[classes.index(document[1])] = 1
+    training_output_row.append(output_row)
   
 training_bag = np.array(training_bag)
 training_output_row = np.array(training_output_row)
@@ -69,7 +69,7 @@ model.add(Dense(len(train_y[0]), activation='softmax'))
 sgd = SGD(learning_rate=0.01, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
-hist = model.fit(np.array(train_x), np.array(train_y), epochs=200, batch_size=5, verbose=1)
+hist = model.fit(np.array(train_x), np.array(train_y), epochs=100, batch_size=5, verbose=1)
 model.save('chatbotmodel.h5', hist)
 
 print("Done")

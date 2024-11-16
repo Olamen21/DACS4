@@ -1,20 +1,39 @@
 {
   "intents": [
-      {
-        "tag": "greeting",
-        "patterns": ["Hi", "Hello", "How are you?", "Good morning", "Good evening"],
-        "responses": ["Greetings! How can I assist you?"]
-      },
-      {
-        "tag": "book_room",
-        "patterns": ["I want to book a room", "Reserve a room", "Book room"],
-        "responses": ["Sure, I can help you with that. Please provide your details."]
-      },
-      {
-        "tag": "room_availability",
-        "patterns": ["Do you have rooms available in New York?", "Any rooms free in Los Angeles?", "Room availability in Paris"],
-        "responses": ["Got it! You're interested in booking a room in {location}. Please provide the booking date."]
-      }
+    {
+      "tag": "chao_hoi",
+      "patterns": ["Chào", "Xin chào", "Hi", "Hello", "Chào buổi sáng", "Chào buổi tối"],
+      "responses": ["Chào bạn! Tôi có thể giúp gì cho bạn hôm nay?", "Xin chào! Bạn cần hỗ trợ gì ạ?"]
+    },
+    {
+      "tag": "dia_diem",
+      "patterns": ["Tôi muốn đến Đà Nẵng", "Tôi muốn đặt phòng ở Huế", "Tôi muốn đặt phòng tại Hội An", "Tôi muốn nghỉ tại Đà Nẵng", "Tôi cần đặt phòng ở Huế."],
+      "responses": ["Rất tuyệt! Bạn muốn đặt phòng tại {location}. Vui lòng cung cấp ngày check-in và check-out để tôi kiểm tra phòng trống."]
+    },
+    {
+      "tag": "dat_phong",
+      "patterns": ["Tôi muốn đặt phòng", "Đặt phòng giúp tôi", "Tôi cần đặt một phòng khách sạn"],
+      "responses": ["Chắc chắn rồi! Bạn vui lòng cung cấp thông tin chi tiết như ngày check-in, check-out và loại phòng nhé."]
+    },
+    {
+      "tag": "kiem_tra_phong_trong",
+      "patterns": ["Khách sạn có phòng trống không?", "Có phòng nào ở Hà Nội không?", "Phòng trống tại Đà Nẵng?"],
+      "responses": ["Vâng, tôi sẽ kiểm tra phòng trống tại {location}. Bạn có thể cung cấp ngày muốn đặt không?"]
+    },
+    {
+      "tag": "huy_dat_phong",
+      "patterns": ["Hủy đặt phòng", "Tôi muốn hủy phòng", "Làm sao để hủy đặt phòng?"],
+      "responses": ["Được rồi! Bạn vui lòng cung cấp mã đặt phòng để tôi hỗ trợ hủy nhé."]
+    },
+    {
+      "tag": "dich_vu_khach_san",
+      "patterns": ["Khách sạn có dịch vụ gì?", "Tiện ích tại khách sạn là gì?", "Khách sạn có bể bơi không?"],
+      "responses": ["Khách sạn chúng tôi có các tiện ích như Wi-Fi miễn phí, bể bơi, spa và nhà hàng. Bạn cần hỗ trợ thêm thông tin gì không?"]
+    },
+    {
+      "tag": "hoi_gia",
+      "patterns": ["Giá phòng là bao nhiêu?", "Cho tôi biết giá phòng", "Phòng đôi giá bao nhiêu?"],
+      "responses": ["Giá phòng phụ thuộc vào loại phòng và thời gian bạn đặt. Vui lòng cho biết thông tin chi tiết để tôi kiểm tra giá giúp bạn."]
+    }
   ]
-  }
-      
+}
