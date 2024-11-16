@@ -12,4 +12,3 @@ export {default as Setting                  }                   from './Settings
 export {default as Signup                   }                   from './Signup'             ;
 export {default as ChatBot                  }                   from './ChatBot'            ;
 export {default as FindSearchScreen         }                   from './FindSearchScreen'   ;
-export {default as SearchFilterScreen       }                   from './SearchFilterScreen' ;

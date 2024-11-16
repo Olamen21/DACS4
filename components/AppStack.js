@@ -41,11 +41,6 @@ const AppStack = () => {
         component={History}
         options={{ headerShown: false }} // Hiện header cho EditProfile
       />
-      <Stack.Screen
-        name="SearchFilter"
-        component={SearchFilterScreen}
-        options={{ headerShown: false }}
-      />
     </Stack.Navigator>
 
   );
