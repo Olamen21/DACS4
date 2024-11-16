@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,25 @@ const ChatBot = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const navigation = useNavigation();
+
+  // Tự động gửi lời chào khi mở màn hình
+  useEffect(() => {
+    const fetchWelcomeMessage = async () => {
+      try {
+        const response = await fetch('http://192.168.1.7:5000/chatbot/init', {
+          method: 'GET',
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setMessages([{ text: data.response, isUser: false }]);
+      } catch (error) {
+        console.error('Error fetching welcome message:', error);
+      }
+    };
+    fetchWelcomeMessage();
+  }, []);
 
   const sendMessage = async () => {
     if (input.trim() === '') return;

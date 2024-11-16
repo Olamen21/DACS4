@@ -6,11 +6,12 @@ import re
 
 import nltk
 from nltk.stem import WordNetLemmatizer
+from pyvi import ViTokenizer
 from flask import Flask, request, jsonify
 from tensorflow.keras.models import load_model
 
 lemmatizer = WordNetLemmatizer()
-intents = json.loads(open('intents.json').read())
+intents = json.loads(open('intents.json', encoding='utf-8').read())
 
 words = pickle.load(open('words.pkl','rb'))
 classes = pickle.load(open('classes.pkl','rb'))
@@ -19,7 +20,7 @@ model = load_model('chatbotmodel.h5')
 app = Flask(__name__)
 
 def clean_up_sentence(sentence):
-	sentence_words = nltk.word_tokenize(sentence)
+	sentence_words = ViTokenizer.tokenize(sentence).split()
 	sentence_words = [lemmatizer.lemmatize(word) for word in sentence_words]
 	return sentence_words
 
@@ -47,7 +48,7 @@ def predict_class(sentence):
 
 def extract_location(message):
     # Định nghĩa các mẫu location hoặc tên thành phố
-    locations = ["New York", "Los Angeles", "Paris", "Tokyo"]  # Thêm vào các địa điểm có thể khác
+    locations = ["Đà Nẵng", "Huế", "Hội An"]
     for location in locations:
         if re.search(r'\b' + re.escape(location) + r'\b', message, re.IGNORECASE):
             return location
@@ -65,6 +66,13 @@ def get_response(intents_list, intents_json, message):
                 result = random.choice(i['responses'])
             break
     return result
+
+@app.route("/chatbot/init", methods=["GET"])
+def chatbot_welcome():
+    welcome_message = {
+        "response": "Xin chào! Tôi có thể giúp gì cho bạn hôm nay?"
+    }
+    return jsonify(welcome_message)
 
 @app.route("/chatbot", methods=["POST"])
 def chatbot_response():
