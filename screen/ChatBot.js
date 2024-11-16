@@ -24,7 +24,7 @@ const ChatBot = () => {
     setInput('');
 
     try {
-      const response = await fetch('http://10.60.199.212:5000/chatbot', {
+      const response = await fetch('http://192.168.1.7:5000/chatbot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input }),
