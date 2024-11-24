@@ -1,31 +1,101 @@
-import React, { useState } from 'react';
-import { Text, TextInput, View, StyleSheet, Image, Pressable, Dimensions, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Text, TextInput, View, StyleSheet, Image, Pressable, Dimensions, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Ionicons from 'react-native-vector-icons/Ionicons'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import Entypo from 'react-native-vector-icons/Entypo'
 import COLORS from '../style/Colors';
 import Button from '../components/Button';
+import { useSelector } from 'react-redux';
+import { API_URL, API_URL_USER } from '@env'
+import axios from 'axios';
+import CryptoJS from 'crypto-js';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
-const ChangePass = ({navigation}) => {
+const ChangePass = ({ navigation }) => {
+  const user_id = useSelector((state) => state.auth.user_id);
+  const [userData, setUserData] = useState(null)
+  const [loading, setLoading] = useState(true);
+
   const [isPassOldShown, setIsPassOldShown] = useState(false);
   const [isPassNewShown, setIsPassNewShown] = useState(false);
   const [isPassNewAgainShown, setIsPassNewAgainShown] = useState(false);
 
+  const [passOld, setPassOld] = useState("")
+  const [passNew, setPassNew] = useState("")
+  const [passNewAgain, setPassNewAgain] = useState("")
 
+  const [errorPassOld, setPassOldError] = useState("")
+  const [errorPassNew, setPassNewError] = useState("")
+  const [errorPassNewAgain, setPassNewAgainError] = useState("")
+
+  useEffect(() => {
+    // Hàm async để lấy dữ liệu người dùng
+    const fetchUserData = async () => {
+      console.log(API_URL + API_URL_USER + user_id)
+      try {
+        const response = await axios.get(API_URL + API_URL_USER + user_id);
+        setUserData(response.data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false); // Kết thúc quá trình tải
+      }
+    };
+
+    fetchUserData();
+  }, [user_id]);
+ if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
+  const hashedPasswordOld = CryptoJS.SHA256(passOld).toString();
+  const hashedPasswordNew = CryptoJS.SHA256(passNew).toString();
+  const changePasss = async()=>{
+    try {
+      if(userData.password!=hashedPasswordOld){
+        setPassOldError("Invalid password.")
+        return
+      }
+      if(passNew.length<6){
+        setPassNewError("The password is to weak.")
+        return
+      }
+      if(passNew!=passNewAgain){
+        setPassNewAgainError("Invalid password.")
+        return
+      }
+      let formData = {
+        password:hashedPasswordNew,
+      }
+      axios.patch(API_URL + API_URL_USER + user_id, formData)
+      .then((response) => {
+        if (response.data) {
+          Alert.alert("Update password successful!");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        Alert.alert("An error occurred during registration.");
+      });
+    } catch (error) {
+      console.log(error)
+    }
+  }
   return (
     <KeyboardAwareScrollView
       style={styles.container}
       contentContainerStyle={{ flexGrow: 1 }}
-      extraScrollHeight={20}  
-      enableOnAndroid={true}  
+      extraScrollHeight={20}
+      enableOnAndroid={true}
     >
       <View style={styles.header}>
-      <Pressable onPress={()=>navigation.navigate("Profile")}>
-          <Image source={require('../img/back.png')} style={styles.Img_back} />
-      </Pressable>
+        <Pressable onPress={() => navigation.navigate("Profile")}>
+          <Ionicons name='chevron-back' size={30} color={'black'} style={styles.Img_back} />
+        </Pressable>
         <Text style={styles.titleHeader}>Change Password</Text>
-        {/* <Image source={require('../img/diskette.png')} style={styles.Img_save} /> */}
+
       </View>
 
       <View style={styles.main}>
@@ -36,35 +106,35 @@ const ChangePass = ({navigation}) => {
               placeholder='Enter your password'
               placeholderTextColor={COLORS.black}
               secureTextEntry={!isPassOldShown}
-              // value={PASSWORD}
-              // onChangeText={(text)=>SETPASSWORD(text)}
+              value={passOld}
+              onChangeText={(text) => {
+                setPassOld(text),
+                setPassOldError("")
+              }}
+              
               style={{
                 width: "100%",
                 color: COLORS.black
-              }}/>
+              }} />
 
-              <TouchableOpacity
-                onPress={()=> setIsPassOldShown(!isPassOldShown)}
-                style={{
-                  position: "absolute",
-                  right: 12,
-                }}
-              >
+            <TouchableOpacity
+              onPress={() => setIsPassOldShown(!isPassOldShown)}
+              style={{
+                position: "absolute",
+                right: 12,
+              }}
+            >
 
-                {
-                  isPassOldShown == true ? (
-                    <Image 
-                    style={styles.imgPass}
-                    source={require('../img/visible.png')}/>
-                  ) : (
-                    <Image 
-                    style={styles.imgPass}
-                    source={require('../img/hide.png')}/>
-                  )
-                }
-                 
-              </TouchableOpacity>
+              <Ionicons
+                name={isPassOldShown ? 'eye-outline' : 'eye-off-outline'}
+                size={24}
+                color="black"
+              />
+
+
+            </TouchableOpacity>
           </View>
+          {errorPassOld ? <Text style={styles.error}>{errorPassOld}</Text> : null}
         </View>
 
         <View style={styles.content}>
@@ -74,34 +144,33 @@ const ChangePass = ({navigation}) => {
               placeholder='Enter your password'
               placeholderTextColor={COLORS.black}
               secureTextEntry={!isPassNewShown}
-              // value={PASSWORD}
-              // onChangeText={(text)=>SETPASSWORD(text)}
+              value={passNew}
+              onChangeText={(text) => {
+                setPassNew(text),
+                setPassNewError("")
+              }}
+              
               style={{
                 width: "100%",
                 color: COLORS.black
-              }}/>
+              }} />
 
-              <TouchableOpacity
-                onPress={()=> setIsPassNewShown(!isPassNewShown)}
-                style={{
-                  position: "absolute",
-                  right: 12,
-                }}
-              >
+            <TouchableOpacity
+              onPress={() => setIsPassNewShown(!isPassNewShown)}
+              style={{
+                position: "absolute",
+                right: 12,
+              }}
+            >
+              <Ionicons
+                name={isPassNewShown ? 'eye-outline' : 'eye-off-outline'}
+                size={24}
+                color="black"
+              />
 
-                {
-                  isPassNewShown == true ? (
-                    <Image 
-                    style={styles.imgPass}
-                    source={require('../img/visible.png')}/>
-                  ) : (
-                    <Image 
-                    style={styles.imgPass}
-                    source={require('../img/hide.png')}/>
-                  )
-                }
-              </TouchableOpacity>
+            </TouchableOpacity>
           </View>
+          {errorPassNew ? <Text style={styles.error}>{errorPassNew}</Text> : null}
         </View>
 
         <View style={styles.content}>
@@ -111,35 +180,34 @@ const ChangePass = ({navigation}) => {
               placeholder='Enter your password'
               placeholderTextColor={COLORS.black}
               secureTextEntry={!isPassNewAgainShown}
-              // value={PASSWORD}
-              // onChangeText={(text)=>SETPASSWORD(text)}
+              value={passNewAgain}
+              onChangeText={(text) => {
+                setPassNewAgain(text),
+                setPassNewAgainError("")
+              }}
+             
               style={{
                 width: "100%",
                 color: COLORS.black
-              }}/>
+              }} />
 
-              <TouchableOpacity
-                onPress={()=> setIsPassNewAgainShown(!isPassNewAgainShown)}
-                style={{
-                  position: "absolute",
-                  right: 12,
-                }}
-              >
+            <TouchableOpacity
+              onPress={() => setIsPassNewAgainShown(!isPassNewAgainShown)}
+              style={{
+                position: "absolute",
+                right: 12,
+              }}
+            >
+              <Ionicons
+                name={isPassNewAgainShown ? 'eye-outline' : 'eye-off-outline'}
+                size={24}
+                color="black"
+              />
 
-                {
-                  isPassNewAgainShown == true ? (
-                    <Image 
-                    style={styles.imgPass}
-                    source={require('../img/visible.png')}/>
-                  ) : (
-                    <Image 
-                    style={styles.imgPass}
-                    source={require('../img/hide.png')}/>
-                  )
-                }
-                 
-              </TouchableOpacity>
+
+            </TouchableOpacity>
           </View>
+          {errorPassNewAgain ? <Text style={styles.error}>{errorPassNewAgain}</Text> : null}
         </View>
       </View>
       <View style={styles.button}>
@@ -147,15 +215,15 @@ const ChangePass = ({navigation}) => {
           title="Cancel"
           // onPress={()=>SignUp()}
           style={{
-            width:"48%",
+            width: "48%",
           }}
         />
         <Button
           title="Save Change"
-          filled 
-          // onPress={()=>SignUp()}
+          filled
+          onPress={()=>changePasss()}
           style={{
-            width:"48%"
+            width: "48%"
           }}
         />
       </View>
@@ -191,9 +259,9 @@ const styles = StyleSheet.create({
     color: COLORS.black,
     marginTop: windowHeight * 0.014,
     marginLeft: windowWidth * 0.1,
-    flex:0.95
+    flex: 0.95
   },
-  
+
   main: {
     padding: 10,
     marginTop: windowHeight * 0.02,
@@ -207,26 +275,31 @@ const styles = StyleSheet.create({
     marginBottom: windowHeight * 0.01,
     fontWeight: 'bold',
   },
-  fill:{
+  fill: {
     width: "100%",
     height: 48,
     borderColor: COLORS.black,
     borderWidth: 1,
-    borderRadius: 8, 
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     paddingLeft: 22,
   },
-  imgPass:{
-    width:27,
-    height:27,
+  imgPass: {
+    width: 27,
+    height: 27,
   },
-  button:{
+  button: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingLeft:windowWidth*0.03,
-    paddingRight:windowWidth*0.03
-  }
+    paddingLeft: windowWidth * 0.03,
+    paddingRight: windowWidth * 0.03
+  },
+  error: {
+    color: 'red',
+    fontSize:14,
+    top: windowHeight * 0.01
+  },
 });
 
 export default ChangePass;
