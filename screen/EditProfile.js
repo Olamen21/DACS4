@@ -1,58 +1,131 @@
-import React, { useState } from 'react';
-import {  Text, 
-          TextInput, 
-          View, 
-          StyleSheet, 
-          Image,
-          Pressable, 
-          Dimensions,
-          Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  Text,
+  TextInput,
+  View,
+  StyleSheet,
+  Image,
+  Pressable,
+  Dimensions,
+  Platform,
+  ActivityIndicator,
+  Alert
+} from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import COLORS from '../style/Colors';
-import Button from '../components/Button';
+import { useSelector } from 'react-redux';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Entypo from 'react-native-vector-icons/Entypo';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { FlatList } from 'react-native-gesture-handler';
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
+import { API_URL, API_URL_USER } from '@env';
+import axios from 'axios';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
-const EditProfile = ({navigation}) => {
+const EditProfile = ({ navigation }) => {
+  const user_id = useSelector((state) => state.auth.user_id);
+  const [userData, setUserData] = useState(null)
+  const [loading, setLoading] = useState(true);
+  const [errorPhone, setPhoneError] = useState("")
+
   const [selectedGender, setSelectedGender] = useState('Male/Female');
-  
+
   const [dateOfBirth, setDateOfBirth] = useState("")
   const [date, setDate] = useState(new Date())
   const [showPicker, setShowPicker] = useState(false)
 
+  const [phoneNumber, setPhoneNumber] = useState("")
+  const [username, setUsername] = useState("")
+  const [address, setAddress] = useState("")
+
   const maxDate = new Date();
 
-  const toggleDatepicker = () => {
-    setShowPicker(!showPicker);
-  };
-  const onChange = ({type}, selectedDate) => {
-    if(type=="set"){
-      const currentDate = selectedDate;
-      setDate(currentDate);
-
-      if(Platform.OS === 'android'){
-        toggleDatepicker();
-        setDateOfBirth(formatDate(currentDate))
-      }
-
-    }else{
-      toggleDatepicker();
-    }
-  };
-
+  const validatePhoneNumber = (phoneNumber) => {
+    const regex = /^\d{10}$/;
+    return regex.test(phoneNumber);
+};
   const formatDate = (rawDate) => {
     let date = new Date(rawDate);
 
     let year = date.getFullYear();
-    let month = date.getMonth()+1;
+    let month = date.getMonth() + 1;
     let day = date.getDate();
 
     return `${day}-${month}-${year}`;
+  }
+  useEffect(() => {
+    // Hàm async để lấy dữ liệu người dùng
+    const fetchUserData = async () => {
+      try {
+        console.log(API_URL + API_URL_USER + user_id)
+        const response = await axios.get(API_URL + API_URL_USER + user_id);
+        setUserData(response.data);
+        setUsername(response.data.username);
+        setPhoneNumber(response.data.phoneNumber);
+        setAddress(response.data.address);
+        setSelectedGender(response.data.gender);
+        setDateOfBirth(formatDate(response.data.dob));
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false); // Kết thúc quá trình tải
+      }
+    };
 
+    fetchUserData();
+  }, [user_id]);
+
+
+  // Hiển thị màn hình tải trong khi chờ dữ liệu
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
+
+  const toggleDatepicker = () => {
+    setShowPicker(!showPicker);
+  };
+  const onChange = ({ type }, selectedDate) => {
+    if (type == "set") {
+      const currentDate = selectedDate;
+      setDate(currentDate);
+
+      if (Platform.OS === 'android') {
+        toggleDatepicker();
+        setDateOfBirth(formatDate(currentDate))
+      }
+
+    } else {
+      toggleDatepicker();
+    }
+  };
+
+
+  const Update = async () => {
+    if(!validatePhoneNumber(phoneNumber)){
+      setPhoneError("The phone number must be 10 digits long.")
+      return;
+    }
+    let form = {
+      username: username,
+      gender: selectedGender,
+      address: address,
+      dob: date,
+      phoneNumber: phoneNumber,
+    };
+
+    axios.patch(API_URL + API_URL_USER + user_id, form)
+      .then((response) => {
+        if (response.data) {
+          Alert.alert("Update information successful!");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+
+        Alert.alert("An error occurred during registration.");
+      });
   }
 
   return (
@@ -63,17 +136,20 @@ const EditProfile = ({navigation}) => {
       enableOnAndroid={true}  // Đảm bảo hoạt động tốt trên Android
     >
       <View style={styles.header}>
-        <Pressable onPress={()=>navigation.navigate("Profile")}>
-          <Image source={require('../img/back.png')} style={styles.Img_back} />
+        <Pressable onPress={() => navigation.navigate("Profile")}>
+          <Ionicons name='chevron-back' size={30} color={'black'} style={styles.Img_back} />
         </Pressable>
         <Text style={styles.titleHeader}>Edit Profile</Text>
-        <Image source={require('../img/diskette.png')} style={styles.Img_save} />
+        <Pressable onPress={() => Update()}>
+          <MaterialIcons name='save-as' size={34} color={'black'} style={styles.Img_save} />
+        </Pressable>
+
       </View>
 
       <View style={styles.ViewImg}>
         <Image source={require('../img/avt.jpg')} style={styles.Img_user} />
         <View style={styles.iconContainer}>
-          <Image source={require('../img/camera.png')} style={styles.Img_camera} />
+          <Entypo name='camera' size={30} color={'white'} style={styles.Img_camera} />
         </View>
       </View>
 
@@ -81,7 +157,7 @@ const EditProfile = ({navigation}) => {
         <View style={styles.content}>
           <Text style={styles.contentText}>Email</Text>
           <View style={styles.contentEmail}>
-            <Text style={styles.TextEmail}>username@gmail.com</Text>
+            <Text style={styles.TextEmail}>{userData?.email}</Text>
           </View>
         </View>
 
@@ -90,21 +166,22 @@ const EditProfile = ({navigation}) => {
           <TextInput
             placeholder="Enter your username"
             placeholderTextColor={COLORS.grey}
-            keyboardType="email-address"
             style={styles.fill}
+            value={username}
+            onChangeText={setUsername}
           />
         </View>
         <View style={styles.content}>
           <Text style={styles.contentText}>Date of birth</Text>
 
-          {showPicker&& (
+          {showPicker && (
             <DateTimePicker
               mode='date'
               display='spinner'
               value={date}
               onChange={onChange}
               maximumDate={new Date(maxDate)}
-              // minimumDate={new Date('2001-2-1')}
+            // minimumDate={new Date('2001-2-1')}
             />
           )}
 
@@ -155,8 +232,15 @@ const EditProfile = ({navigation}) => {
               placeholderTextColor={COLORS.black}
               keyboardType="numeric"
               style={styles.phoneNumber}
+              value={phoneNumber}
+              onChangeText={(text) => {
+                setPhoneNumber(text);
+                setPhoneError("");
+              }}
+             
             />
           </View>
+          {errorPhone ? <Text style={styles.error}>{errorPhone}</Text> : null}
         </View>
 
         <View style={styles.content}>
@@ -164,12 +248,13 @@ const EditProfile = ({navigation}) => {
           <TextInput
             placeholder="Enter your address"
             placeholderTextColor={COLORS.grey}
-            keyboardType="email-address"
             style={styles.fill}
+            value={address}
+            onChangeText={setAddress}
           />
         </View>
       </View>
-      
+
     </KeyboardAwareScrollView>
   );
 };
@@ -192,9 +277,7 @@ const styles = StyleSheet.create({
     marginBottom: windowWidth * 0.03,
   },
   Img_save: {
-    width: 25,
-    height: 25,
-    marginTop: windowHeight * 0.02,
+    marginTop: windowHeight * 0.015,
     marginBottom: windowWidth * 0.03,
   },
   titleHeader: {
@@ -202,7 +285,7 @@ const styles = StyleSheet.create({
     color: COLORS.black,
     marginTop: windowHeight * 0.014,
     marginLeft: windowWidth * 0.1,
-    flex:0.95
+    flex: 0.95
   },
   ViewImg: {
     alignItems: 'center',
@@ -217,8 +300,6 @@ const styles = StyleSheet.create({
   },
   Img_camera: {
     tintColor: COLORS.white,
-    width: 35,
-    height: 35,
   },
   iconContainer: {
     position: 'absolute',
@@ -245,7 +326,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: COLORS.grey,
     paddingVertical: windowHeight * 0.01,
-    color:COLORS.black,
+    color: COLORS.black,
   },
   contentEmail: {
     borderBottomWidth: 1,
@@ -307,7 +388,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.gray,
     borderRadius: 10,
   },
-  
+  error: {
+    color: 'red',
+    fontSize:14,
+    top: windowHeight * 0.01
+  },
 });
 
 export default EditProfile;

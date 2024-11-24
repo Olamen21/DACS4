@@ -2,15 +2,13 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View, Image, Pressable, 
 import React, { useContext, useState, useEffect } from 'react'
 import COLORS from '../style/Colors'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import Icon from 'react-native-vector-icons/Ionicons'
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import Button from '../components/Button'
-// import { db,  collection, addDoc,query, getDocs, where, FIREBASE_AUTH, doc, getDoc, setDoc} from '../firebase/index'
-// import { Screen } from 'react-native-screens'
-// import { useNavigation } from '@react-navigation/native';
-// import { UserContext } from '../components/UserContext'
-// import { signInWithEmailAndPassword } from "firebase/auth";
-// import { GoogleSignin } from '@react-native-google-signin/google-signin';
-// import auth from '@react-native-firebase/auth';
+import axios from 'axios'
+import CryptoJS from 'crypto-js';
+import { useDispatch, useSelector } from 'react-redux';
+import { setToken, logout } from './store/authSlice';
+import { API_URL, API_URL_USER } from '@env';
 
 
 const windowWidth = Dimensions.get('window').width;
@@ -18,170 +16,63 @@ const windowHeight = Dimensions.get('window').height;
 
 
 const Login = ({navigation}) => {
-// const Login = () => {
-
-
-  // const auths = FIREBASE_AUTH;
-
-  // const [EMAIL, SETEMAIL] = useState('');
-  // const [PASSWORD, SETPASSWORD] = useState('');
-
+  const [EMAIL, SETEMAIL] = useState('');
+  const [PASSWORD, SETPASSWORD] = useState('');
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   
   const [isPasswordShown, setIsPasswordShown] = useState(false)
 
-  // const [emailError, setEmailError] = useState('');
-  // const [passError, setPassError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passError, setPassError] = useState('');
 
-  // const { users, setUser } = useContext(UserContext);
   
-  // useEffect(()=>{
-  //   GoogleSignin.configure({
-  //     webClientId: '591794021020-efjk9hjfccq6m942e5mf4osn46los7to.apps.googleusercontent.com',
-  //   });
-  // },[])
-    // const Login = async () => {
-    //   console.log(EMAIL);
-    //   console.log(PASSWORD);
-      
-    //   try {
-    //     const userCredential = await signInWithEmailAndPassword(auths, EMAIL, PASSWORD);
-    //     const user = userCredential.user;
+  
+  const Login = async () => {
+    if (EMAIL === "" || PASSWORD === "") {
+        Alert.alert("Please fill in all the required information.");
+        return;
+    }
+
+    try {
+      console.log(API_URL+API_URL_USER)
+        // Kiểm tra xem email đã tồn tại chưa
+        const response = await axios.get(API_URL+API_URL_USER);
         
-    //     console.log("Login successfully");
-    //     console.log(user.uid);
-
-    //     const fetchedUserId = user.uid; 
-    //     const docRef = doc(db, "users", fetchedUserId);
-    //     const docSnap = await getDoc(docRef);
-
-    //     if (docSnap.exists()) {
-    //       const userData = docSnap.data();
-    //       setUser((prevUser) => ({
-    //         ...prevUser,
-    //         userId: fetchedUserId,
-    //         email: userData.email,
-    //         username: userData.username,
-    //         profileImage: userData.profileImage,
-    //       }));
-    //       console.log("-----------------");
-    //       console.log(userData.email);
-    //       console.log(userData.username);
-    //     } else {
-    //       console.error("No such document!");
-    //     }
-
-    //     SETEMAIL("");
-    //     SETPASSWORD("");
-    //     navigation.navigate("AppStack");  
-    //   } catch (error) {
-    //     const errorCode = error.code;
-    //     const errorMessage = error.message;
-    //     console.error("Error login user: ", errorCode, errorMessage);
-
-    //     // Handle detailed errors
-    //     switch(errorCode){
-    //       case 'auth/invalid-email':
-    //         setEmailError("The email address is badly formatted.");
-    //         break;
-    //       case 'auth/user-not-found':
-    //         setEmailError('No user found for the provided email address.');
-    //         break;
-    //       case 'auth/wrong-password':
-    //         setPassError('The password is incorrect. Please enter it again.');
-    //         break;
-    //       default:
-    //         console.error("An unknown error occurred.");
-    //         break;
-    //     }
-    //   }
-    // };
-    // async function onGoogleButtonPress() {
-    //   try {
-    //     // Đăng xuất tài khoản hiện tại
-    //     await GoogleSignin.signOut();
-    
-    //     // Hiển thị khung để chọn tài khoản Google cần đăng nhập
-    //     const { idToken, user } = await GoogleSignin.signIn();
-    //     // Tạo Google credential với token
-    //     const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-    //     const userCredential = await auth().signInWithCredential(googleCredential);
-    //     const firebaseUser = userCredential.user;
-    //     console.log(firebaseUser.uid)
-  
-       
-  
-    //     const userRef = doc(db, 'users', firebaseUser.uid);
-    //       await setDoc(userRef, {
-    //         email: user.email,
-    //         username: user.name,
-    //         password: "null",
-    //         gender: null,
-    //         phone: "your phone number",
-    //         profileImage: user.photo,
-    //       });
-  
-    //     const levelsRef = collection(userRef, 'level');
-    //     await setDoc(doc(levelsRef, '1'), {
-    //         completed: false,
-    //         isPlayed: true
-  
-    //     });
-    //     await setDoc(doc(levelsRef, '2'), {
-    //       completed: false,
-    //       isPlayed: false,
-    //     });
-    //     await setDoc(doc(levelsRef, '3'), {
-    //       completed: false,
-    //       isPlayed: false,
-    //     });
-    //     await setDoc(doc(levelsRef, '4'), {
-    //       completed: false,
-    //       isPlayed: false,
-    //     });
-    //     await setDoc(doc(levelsRef, '5'), {
-    //       completed: false,
-    //       isPlayed: false,
-    //     });
-    //     await setDoc(doc(levelsRef, '6'), {
-    //       completed: false,
-    //       isPlayed: false,
-    //     });
-    //     await setDoc(doc(levelsRef, '7'), {
-    //       completed: false,
-    //       isPlayed: false,
-    //     });
-    //     await setDoc(doc(levelsRef, '8'), {
-    //       completed: false,
-    //       isPlayed: false,
-    //     });
-    //     await setDoc(doc(levelsRef, '9'), {
-    //       completed: false,
-    //       isPlayed: false,
-    //     });
-       
-  
-    //     console.log("User registered and data saved to Firestore.");
-    //     console.log(firebaseUser.uid)
+        // Tìm người dùng dựa trên email
+        const user = response.data.find(user => user.email === EMAIL);
         
-    //     const fetchedUserId = firebaseUser.uid; 
-    //     setUser((prevUser) => ({
-    //       ...prevUser,
-    //       userId: fetchedUserId,
-    //       email: user.email,
-    //       username: user.name,
-    //       profileImage: user.photo
-    //     }));
-    //     navigation.navigate("AppStack")
-    //     // Đăng nhập người dùng với credential
-    //     return auth().signInWithCredential(googleCredential);
-        
-    //   } catch (error) {
-    //     console.error(error);
-    //   }
-    // }
+        if (!user) {
+            setEmailError("Invalid email. Please enter it again.");
+            return;
+        }
+
+        // Mã hóa mật khẩu người dùng nhập vào
+        const hashedPassword = CryptoJS.SHA256(PASSWORD).toString();
+
+        // Kiểm tra mật khẩu đã mã hóa
+        if (user.password !== hashedPassword) {
+            setPassError("Invalid password. Please enter it again.");
+            return;
+        }
+
+        // Nếu cả email và mật khẩu đều đúng
+        Alert.alert("Login successful.");
+      // Giả sử response trả về { token: "your-jwt-token", user_id: "12345" }
+        dispatch(setToken({ token: user.token, user_id: user._id }));
+
+        navigation.navigate("AppStack");
+    } catch (error) {
+        console.log(error);
+        Alert.alert("An error occurred while checking the email.");
+        return;
+    }
+};
   
   
-  
+// const handleLogout = () => {
+//   dispatch(logout());
+// };
   
     return (
     <SafeAreaView style={{flex:1, backgroundColor: COLORS.main}}>
@@ -207,14 +98,17 @@ const Login = ({navigation}) => {
             <TextInput
               placeholder='Enter your email'
               placeholderTextColor={COLORS.black}
-              // value={EMAIL}
-              // onChangeText={(text)=>SETEMAIL(text)}
+              value={EMAIL}
+              onChangeText={(text) => {
+                SETEMAIL(text);
+                setEmailError(""); 
+            }}
               style={{
                 width: "100%",
                 color: COLORS.black
               }}/>
           </View>
-          {/* {emailError ? <Text style={styles.error}>{emailError}</Text> : null} */}
+          {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
         </View>
         
         
@@ -225,9 +119,12 @@ const Login = ({navigation}) => {
             <TextInput
               placeholder='Enter your password'
               placeholderTextColor={COLORS.black}
-              // secureTextEntry={!isPasswordShown}
-              // value={PASSWORD}
-              // onChangeText={(text)=>SETPASSWORD(text)}
+              secureTextEntry={!isPasswordShown}
+              value={PASSWORD}
+              onChangeText={(text) => {
+                SETPASSWORD(text);
+                setPassError(""); 
+            }}
               style={{
                 width: "100%",
                 color: COLORS.black
@@ -242,21 +139,15 @@ const Login = ({navigation}) => {
               >
 
                 {/* Ẩn password */}
-                {
-                  isPasswordShown == true ? (
-                    <Image 
-                    style={styles.imgPass}
-                    source={require('../img/visible.png')}/>
-                  ) : (
-                    <Image 
-                    style={styles.imgPass}
-                    source={require('../img/hide.png')}/>
-                  )
-                }
+                <Ionicons
+                name={isPasswordShown ? 'eye-outline' : 'eye-off-outline'}
+                size={24}
+                color="black"
+              />
                  
               </TouchableOpacity>
           </View>
-          {/* {passError ? <Text style={styles.error}>{passError}</Text> : null} */}
+          {passError ? <Text style={styles.error}>{passError}</Text> : null}
         </View>
 
 
@@ -264,8 +155,7 @@ const Login = ({navigation}) => {
         {/* buttonLogin */}
         <Button
           title="Login"
-        //   onPress={()=> Login()}
-        onPress={()=> navigation.navigate("AppStack")}
+          onPress={()=> Login()}
           filled 
           style={{
             top: windowWidth*0.07
