@@ -72,3 +72,15 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Thư mục ảo
+.venv/
+
+# Thư mục pycache
+__pycache__/
+
+# File log
+*.log
+
+# Các file có dung lượng lớn
+chatbot/.venv/Lib/site-packages/tensorflow/python/_pywrap_tensorflow_internal.pyd
