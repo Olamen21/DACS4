@@ -3,88 +3,147 @@ import json
 import pickle
 import numpy as np
 import re
-
-import nltk
+import os
 from nltk.stem import WordNetLemmatizer
 from pyvi import ViTokenizer
-from flask import Flask, request, jsonify
+from pymongo import MongoClient
+from dotenv import load_dotenv
 from tensorflow.keras.models import load_model
 
+# Khởi tạo
 lemmatizer = WordNetLemmatizer()
 intents = json.loads(open('intents.json', encoding='utf-8').read())
-
-words = pickle.load(open('words.pkl','rb'))
-classes = pickle.load(open('classes.pkl','rb'))
+words = pickle.load(open('words.pkl', 'rb'))
+classes = pickle.load(open('classes.pkl', 'rb'))
 model = load_model('chatbotmodel.h5')
+load_dotenv("python.env")
+MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
+MONGO_URI = f"mongodb+srv://BookingHotel:{os.environ['MONGO_PASSWORD']}@bookinghotel.dsvue.mongodb.net/"
 
-app = Flask(__name__)
+# Kết nối MongoDB
+def connect_db():
+    try:
+        client = MongoClient(MONGO_URI)
+        db = client["DACS4"]
+        return db
+    except Exception as e:
+        print("Kết nối thất bại:", e)
+        return None
 
 def clean_up_sentence(sentence):
-	sentence_words = ViTokenizer.tokenize(sentence).split()
-	sentence_words = [lemmatizer.lemmatize(word) for word in sentence_words]
-	return sentence_words
+    sentence_words = ViTokenizer.tokenize(sentence).split()
+    sentence_words = [lemmatizer.lemmatize(word) for word in sentence_words]
+    return sentence_words
 
 def bag_of_words(sentence):
-	sentence_words = clean_up_sentence(sentence)
-	bag = [0] * len(words)
-	for w in sentence_words:
-		for i, word in enumerate(words):
-			if word == w:
-				bag[i] = 1
-	return np.array(bag)
+    sentence_words = clean_up_sentence(sentence)
+    bag = [0] * len(words)
+    for w in sentence_words:
+        for i, word in enumerate(words):
+            if word == w:
+                bag[i] = 1
+    return np.array(bag)
 
 def predict_class(sentence):
-	bow = bag_of_words(sentence)
-	res = model.predict(np.array([bow]))[0]
-	ERROR_THRESHOLD = 0.25
-	results = [[i,r] for i,r in enumerate(res) if r > ERROR_THRESHOLD]
-	results.sort(key=lambda x: x[1], reverse=True)
+    bow = bag_of_words(sentence)
+    res = model.predict(np.array([bow]))[0]
+    ERROR_THRESHOLD = 0.25
+    results = [[i, r] for i, r in enumerate(res) if r > ERROR_THRESHOLD]
+    results.sort(key=lambda x: x[1], reverse=True)
 
-	return_list = []
-	for r in results:
-		return_list.append({'intent': classes[r[0]], 'probability': str(r[1])})
+    return_list = []
+    for r in results:
+        return_list.append({'intent': classes[r[0]], 'probability': str(r[1])})
 
-	return return_list
+    return return_list
 
 def extract_location(message):
-    # Định nghĩa các mẫu location hoặc tên thành phố
     locations = ["Đà Nẵng", "Huế", "Hội An"]
     for location in locations:
         if re.search(r'\b' + re.escape(location) + r'\b', message, re.IGNORECASE):
             return location
     return None
 
-def get_response(intents_list, intents_json, message):
+def extract_hotel_name(message, db):
+    hotels_collection = db['hotels']
+    hotel_names = []
+
+    for hotel in hotels_collection.find():
+        if 'name' in hotel:
+            hotel_names.append(hotel['name'])
+
+    for hotel_name in hotel_names:
+        if hotel_name.lower() in message.lower():
+            return hotel_name
+
+    return None
+
+def find_hotels_by_location(location, db):
+    hotels_collection = db["hotels"]
+    hotels = hotels_collection.find({"location": location})
+    return [
+        {
+            "name": hotel["name"],
+            "rating": hotel.get("rating", "N/A"),
+            "description": hotel.get("description", ""),
+            "contact": hotel.get("contact", "N/A")
+        }
+        for hotel in hotels
+    ]
+
+def find_available_rooms(hotel_name, db):
+    hotels_collection = db["hotels"]
+    rooms_collection = db["rooms"]
+
+    hotel = hotels_collection.find_one({"name": hotel_name})
+    if not hotel:
+        return f"Không tìm thấy khách sạn '{hotel_name}'."
+
+    rooms = rooms_collection.find({"hotel_id": hotel["_id"], "availability": True})
+    return [
+        {
+            "room_number": room.get("room_number", "N/A"),
+            "type": room.get("type", "N/A"),
+            "price": room.get("price", "N/A")
+        }
+        for room in rooms
+    ] or f"Không còn phòng trống tại {hotel_name}."
+
+
+def get_response(intents_list, intents_json, message, db):
     tag = intents_list[0]['intent']
-    location = extract_location(message)  # Trích xuất location từ tin nhắn
     list_of_intents = intents_json['intents']
+    
     for i in list_of_intents:
         if i['tag'] == tag:
-            if location:
-                result = random.choice(i['responses']).replace("{location}", location)
+            if tag == "dia_diem":
+                # Tìm khách sạn theo địa điểm
+                location = extract_location(message)
+                if location:
+                    hotels = find_hotels_by_location(location, db)
+                    if hotels:
+                        response = "Tôi đã tìm thấy các khách sạn tại {}:\n".format(location)
+                        for hotel in hotels:
+                            response += f"- {hotel['name']} (Rating: {hotel['rating']}): {hotel['description']}. Liên hệ: {hotel['contact']}.\n"
+                    else:
+                        response = f"Không có khách sạn nào tại {location}."
+                else:
+                    response = "Xin vui lòng cung cấp địa điểm bạn muốn tìm kiếm."
+            elif tag == "kiem_tra_phong_trong":
+                # Kiểm tra phòng trống
+                hotel_name = extract_hotel_name(message, db)  # Hàm này cần triển khai
+                if hotel_name:
+                    rooms = find_available_rooms(hotel_name, db)
+                    if isinstance(rooms, str):  # Nếu rooms là thông báo lỗi
+                        response = rooms
+                    else:
+                        response = f"Các phòng trống tại {hotel_name}:\n"
+                        for room in rooms:
+                            response += f"- {room['type']}: {room['room_number']}. Giá: {room['price']} VND.\n"
+                else:
+                    response = "Xin vui lòng cung cấp tên khách sạn bạn muốn kiểm tra."
             else:
-                result = random.choice(i['responses'])
+                # Phản hồi mặc định từ intents.json
+                response = random.choice(i['responses'])
             break
-    return result
-
-@app.route("/chatbot/init", methods=["GET"])
-def chatbot_welcome():
-    welcome_message = {
-        "response": "Xin chào! Tôi có thể giúp gì cho bạn hôm nay?"
-    }
-    return jsonify(welcome_message)
-
-@app.route("/chatbot", methods=["POST"])
-def chatbot_response():
-    data = request.get_json()  # Get JSON data from the request
-    message = data.get('message', '')  # Extract "message" from the JSON data
-    if not message:
-        return jsonify({"response": "No message provided"}), 400  # Return error if message is missing
-
-    # Predict class and get response
-    ints = predict_class(message)
-    res = get_response(ints, intents, message)
-    return jsonify({"response": res})
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    return response
