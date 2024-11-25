@@ -1,0 +1,295 @@
+.main-content {
+  margin-left: 300px;
+  margin-right: 20px;
+}
+
+.home-title {
+  font-weight: 600;
+  margin-top: 20px;
+  font-size: 1.8rem;
+  color: black;
+  margin-bottom: 20px;
+  width: 90%;
+}
+
+.home-container {
+  padding-left: 30px;
+}
+
+.card {
+  width: 260px;
+  height: 130px;
+  padding: 20px;
+  border-width: 0.5px;
+  box-shadow: 5px 10px 10px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  border-radius: 8px;
+
+}
+
+.home-box-title {
+  font-size: 20px;
+  margin-top: 10px;
+  font-weight: 500;
+  width: 200px;
+}
+
+.home-box-icon {
+  font-size: 40px;
+  color: gray;
+  margin-top: 14px;
+}
+
+.home-box-number {
+  font-size: 25px;
+  font-weight: 500;
+  color: gray;
+}
+
+
+.table-responsive {
+  max-width: 100%;
+  overflow-x: auto;
+  margin-bottom: 40px;
+}
+
+
+.table {
+  width: 100%;
+  margin-bottom: 1rem;
+  background-color: transparent;
+  border-collapse: collapse;
+
+}
+
+.table th,
+.table td {
+  padding: 15px 20px;
+  vertical-align: middle;
+  border-top: 1px solid #e1e1e1;
+}
+
+
+.table thead {
+  background-color: black;
+
+}
+
+.table thead th {
+  color: #ffffff;
+  font-weight: bold;
+  text-align: left;
+}
+
+.table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+
+.table .text-right {
+  text-align: right;
+}
+
+
+.table .text-danger {
+  color: #e74c3c;
+  cursor: pointer;
+}
+
+.table .text-danger:hover {
+  color: #c0392b;
+}
+
+
+.table-borderless th,
+.table-borderless td {
+  border: none;
+}
+
+
+.table td:last-child {
+  text-align: center;
+
+}
+
+.m-b-40 {
+  margin-bottom: 40px;
+}
+
+
+.custom-button {
+  padding: 10px 20px;
+  background-color: rgb(205, 202, 202);
+  color: black;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  height: 50px;
+}
+
+.custom-button:hover {
+  background-color: black;
+  color: white;
+}
+
+.room-add {
+  margin-top: 20px;
+}
+
+.Name-Hotel {
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+.Name-Hotel-Input {
+  width: 350px;
+  height: 20px;
+  margin-top: 10px;
+  padding: 20px;
+  border-width: 1px;
+  border-color: black;
+  box-shadow: 5px 10px 10px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  border-radius: 3px;
+
+}
+
+.add-box {
+  margin-right: 50px;
+}
+
+.row-box {
+  margin-top: 30px;
+}
+
+.checkbox-Amenities {
+  font-size: 1.3rem;
+  font-weight: 400;
+  margin-top: 15px;
+}
+
+.box-checkbox {
+  margin-right: 30px;
+}
+
+.checkbox {
+  margin-right: 10px;
+  transform: scale(1.5);
+}
+
+.textArea {
+  width: 100%;
+  padding: '10px';
+  font-size: 1rem;
+  margin-top: 10px;
+  padding: 20px;
+  border-width: 1px;
+  border-color: black;
+  box-shadow: 5px 10px 10px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  border-radius: 3px;
+}
+
+.button-hotel{
+  margin-top: 20px;
+}
+.button-hotel-back{
+ margin-right: 20px;
+}
+
+.errorStyle{
+  margin-top: 10px;
+  color: red;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.room-title{
+  font-weight: 600;
+  margin-top: 20px;
+  font-size: 1.8rem;
+  color: black;
+  margin-bottom: 20px;
+  width: 82%;
+}
+.room-back{
+  margin-top: 20px;
+  margin-right: 20px;
+}
+
+.Number-Room {
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+.Number-Room-Input {
+  width: 250px;
+  height: 20px;
+  margin-top: 10px;
+  padding: 20px;
+  border-width: 1px;
+  border-color: black;
+  box-shadow: 5px 10px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+
+}
+.add-box-room {
+  margin-right: 50px;
+}
+.select-room {
+  width: 200px;
+  height: 40px; 
+  margin-top: 10px;
+  padding: 5px;
+  border-width: 1px;
+  border-color: black;
+  box-shadow: 5px 10px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  color: black; 
+  background-color: white; 
+  font-size: 1rem; 
+}
+
+.Number-Room-img{
+  width: 500px;
+  height: 45px;
+  border-width: 1px;
+  border-color: black;
+  box-shadow: 5px 10px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  padding: 7px;
+  margin-left: 20px;
+  margin-bottom: 20px;
+}
+
+.select-city {
+  width: 350px;
+  height: 45px; 
+  margin-top: 9px;
+  padding: 5px;
+  border-width: 1px;
+  border-color: black;
+  box-shadow: 5px 10px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  color: black; 
+  background-color: white; 
+  font-size: 1rem; 
+  
+}
+.add-hotel-img{
+  width: 500px;
+  height: 45px;
+  margin-top: 10px;
+  border-width: 1px;
+  border-color: black;
+  box-shadow: 5px 10px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  padding: 7px;
+  margin-bottom: 20px;
+}
+
+
+
+  
+ 
