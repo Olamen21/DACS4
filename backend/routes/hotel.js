@@ -12,5 +12,6 @@ router.get('/:id', hotelController.getHotel);
 router.post('/', upload.single('image'), hotelController.createHotel); // Thêm middleware upload
 router.patch('/:id',upload.single('image'), hotelController.updateHotel);
 router.delete('/:id', hotelController.deleteHotel);
+router.get('/search/:id_city', hotelController.searchHotel)
 
 module.exports = router;

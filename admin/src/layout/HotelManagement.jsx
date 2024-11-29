@@ -86,10 +86,11 @@ const HotelManagement = () => {
                   <td>{hotel.address}</td>
                   <td>{hotel.contactNumber}</td>
                   <td>{hotel.total_rooms}</td>
+                  <td>{hotel.booked_rooms}</td>
                   <td>{hotel.available_rooms}</td>
-                  <td>
+                  {/* <td>
           <img src={hotel.imageUrl} alt={hotel.name} style={{ width: '100px', height: 'auto' }} />
-        </td>
+        </td> */}
                   <td>
                     <Button text="Details" onClick={() => handleDetail(hotel._id, hotel.nameHotel)} />
                   </td>

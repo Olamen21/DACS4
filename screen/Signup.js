@@ -63,7 +63,7 @@ const Signup = ({ navigation }) => {
 
     try {
     
-
+console.log(API_URL+API_URL_USER)
       const response = await axios.get(API_URL+API_URL_USER);
 
       const emailExists = response.data.some(user => user.email === EMAIL);

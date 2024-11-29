@@ -77,7 +77,7 @@ const EditHotel = () => {
                 const response = await axios.get(apiUrl + apiUrlHotel + hotel_id);
 
                 if (response.data) {
-                    setHotelData(response.data);
+                    // setHotelData(response.data);
                     setNameHotel(response.data.nameHotel);
                     setAddress(response.data.address);
                     setContactNumber(response.data.contactNumber);
