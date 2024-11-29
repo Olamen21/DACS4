@@ -1,4 +1,5 @@
 const path = require('path');
+const mongoose = require('mongoose');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const Hotel = require('../models/hotel');
@@ -162,5 +163,32 @@ module.exports = {
             res.status(500).json("failed to get the user")
         }
     },
+    searchHotel: async (req, res) => {
+        try {
+            const { id_city } = req.params; 
+
+            
+            if (!id_city) {
+                return res.status(400).json({ message: 'id_city parameter is required' });
+            }
+    
+            // Chuyển đổi id_hotel thành ObjectId hợp lệ
+            const objectId = new mongoose.Types.ObjectId(id_city);
+    
+            // Tìm tất cả các phòng có id_hotel tương ứng
+            const hotels = await Hotel.find({ id_city: objectId });
+    
+            // Kiểm tra nếu không tìm thấy phòng nào
+            if (hotels.length === 0) {
+                return res.status(404).json({ message: 'No hotel found for the given city' });
+            }
+    
+            // Trả về danh sách phòng tìm được
+            res.status(200).json(hotels);
+        } catch (error) {
+            console.error('Error:', error);
+            res.status(500).json({ message: 'Failed to get the rooms', error });
+        }
+    }
 
 }

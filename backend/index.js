@@ -18,9 +18,12 @@ mongoose.connect(process.env.MONGO_URL)
   .catch((err) => console.log(err));
 
 // Cấu hình CORS trước khi định nghĩa các route
+
+
 app.use(cors({
-  origin: 'http://localhost:3000'  // Cho phép truy cập từ localhost:3000
+  origin: 'http://localhost:3000',
 }));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 

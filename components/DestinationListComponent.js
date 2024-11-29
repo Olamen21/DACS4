@@ -1,17 +1,55 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Image, Text, FlatList, StyleSheet } from 'react-native';
-
-const destinations = [
-  { id: '1', name: 'Đà Nẵng', image: require('../img/cauvang-1654247842-9403-1654247849.jpg'), hotels: '178 Hotels' },
-  { id: '2', name: 'Hội An', image: require('../img/Hoi-An-VnExpress-5851-16488048-4863-2250-1654057244.jpg'), hotels: '165 Hotels' },
-];
+import { API_URL, API_URL_CITY, API_URL_HOTEL } from '@env';
+import axios from 'axios';
 
 const DestinationListComponent = () => {
+  const [dataCity, setDataCity] = useState([]); 
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Lấy dữ liệu từ API thành phố
+        const resCity = await axios.get(API_URL + API_URL_CITY);
+        const cityData = resCity.data; // Lưu dữ liệu thành phố vào biến cityData
+
+        // Lấy số lượng khách sạn cho mỗi thành phố
+        const updatedCityData = await Promise.all(
+          cityData.map(async (city) => {
+            // Gửi yêu cầu API khách sạn cho từng thành phố
+            const resHotel = await axios.get(API_URL + API_URL_HOTEL + 'search/' + city._id);
+            const numberOfHotels = resHotel.data.length; // Số khách sạn trong thành phố
+
+            // Trả về thành phố với số lượng khách sạn cập nhật
+            return {
+              ...city,
+              hotels: `${numberOfHotels} Hotels`, // Cập nhật số lượng khách sạn
+            };
+          })
+        );
+
+        // Cập nhật state với dữ liệu thành phố đã được cập nhật
+        setDataCity(updatedCityData);
+
+      } catch (error) {
+        console.log(error); 
+      }
+    };
+
+    fetchData(); 
+  }, []); 
+
   const renderDestinationItem = ({ item }) => (
     <View style={styles.destinationItem}>
-      <Image source={item.image} style={styles.destinationImage} />
+      {/* Hiển thị hình ảnh thành phố */}
+      <Image
+        source={{ uri: item.img }} 
+        style={styles.destinationImage}
+      />
       <View style={styles.textContainer}>
+        {/* Hiển thị tên thành phố */}
         <Text style={styles.destinationName}>{item.name}</Text>
+        {/* Hiển thị số lượng khách sạn */}
         <Text style={styles.destinationHotels}>{item.hotels}</Text>
       </View>
     </View>
@@ -21,9 +59,9 @@ const DestinationListComponent = () => {
     <View style={styles.wannaGo}>
       <Text style={styles.recentText}>Where do you wanna go?</Text>
       <FlatList
-        data={destinations}
+        data={dataCity} // Dùng dữ liệu từ API đã cập nhật
         renderItem={renderDestinationItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item._id.toString()} // Đảm bảo id là chuỗi
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.destinationList}
@@ -44,7 +82,7 @@ const styles = StyleSheet.create({
   destinationItem: {
     alignItems: 'center',
     marginHorizontal: 5,
-    position: 'relative', //Giữ các thành phần bên trong theo vị trí tương đối
+    position: 'relative',
   },
   destinationImage: {
     width: 161,
@@ -61,21 +99,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: 'white',
-    textShadowColor: 'rgba(0,0,0,0.75)', //Đổ bóng chữ để dễ đọc hơn
-    textShadowOffset: {width: -1, height: 1},
+    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
   },
   destinationHotels: {
     fontSize: 14,
     color: 'white',
-    textShadowColor: 'rgba(0,0,0,0.75)', //Đổ bóng chữ để dễ đọc hơn
-    textShadowOffset: {width: -1, height: 1},
+    textShadowColor: 'rgba(0,0,0,0.75)',
+    textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
   },
   recentText: {
     fontSize: 17,
     fontWeight: 'bold',
-    color:'black'
+    color: 'black',
   },
 });
 

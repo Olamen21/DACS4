@@ -36,6 +36,8 @@ const Login = ({navigation}) => {
 
     try {
       console.log(API_URL+API_URL_USER)
+
+
         // Kiểm tra xem email đã tồn tại chưa
         const response = await axios.get(API_URL+API_URL_USER);
         
