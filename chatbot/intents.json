@@ -8,7 +8,7 @@
     {
       "tag": "dia_diem",
       "patterns": ["Tôi muốn đến Đà Nẵng", "Tôi muốn đặt phòng ở Huế", "Tôi muốn đặt phòng tại Hội An", "Tôi muốn nghỉ tại Đà Nẵng", "Tôi cần đặt phòng ở Huế."],
-      "responses": ["Rất tuyệt! Bạn muốn đặt phòng tại {location}. Vui lòng cung cấp ngày check-in và check-out để tôi kiểm tra phòng trống."]
+      "responses": ["Rất tuyệt! Bạn muốn đặt phòng tại {location}. Vui lòng cung cấp ngày check-in để tôi kiểm tra phòng trống."]
     },
     {
       "tag": "dat_phong",

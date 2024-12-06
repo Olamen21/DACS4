@@ -22,8 +22,11 @@ def chatbot_response():
 
     # Predict class and get response
     ints = predict_class(message)
-    res = get_response(ints, intents, message, db)
-    return jsonify({"response": res})
+    responses = get_response(ints, intents, message, db)
+    if isinstance(responses,list):
+        return jsonify({"response": responses})
+    else:
+        return jsonify({"response": responses})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

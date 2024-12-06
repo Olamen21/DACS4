@@ -84,6 +84,15 @@ def extract_hotel_name(message, db):
 
     return None
 
+#Lấy số lượng người
+def extract_number_of_people(message):
+    match = re.search(r'(\d+)\s*(người|người lớn|trẻ em|khách)', message, re.IGNORECASE)
+    
+    if match: 
+        return int(match.group(1))
+    else: 
+        return None
+
 def find_hotels_by_location(city_name, db):
     cities_collection = db["cities"]
     hotels_collection = db["hotels"]
@@ -124,6 +133,7 @@ def find_available_rooms(hotel_name, db):
 def get_response(intents_list, intents_json, message, db):
     tag = intents_list[0]['intent']
     list_of_intents = intents_json['intents']
+    responses = []
     
     for i in list_of_intents:
         if i['tag'] == tag:
@@ -133,28 +143,32 @@ def get_response(intents_list, intents_json, message, db):
                 if location:
                     hotels = find_hotels_by_location(location, db)
                     if hotels:
-                        response = "Tôi đã tìm thấy các khách sạn tại {}:\n".format(location)
-                        for hotel in hotels:
-                            response += f"- {hotel['nameHotel']} (Địa chỉ: {hotel['address']}). Liên hệ: {hotel['contactNumber']}.\n"
+                        responses.append(f"Tôi đã tìm thấy các khách sạn tại {location}:")
+                        for idx, hotel in enumerate(hotels, start=1):
+                            response = f"{idx}. {hotel['nameHotel']} (Địa chỉ: {hotel['address']}). Liên hệ: {hotel['contactNumber']}."
+                            responses.append(response)
                     else:
-                        response = f"Không có khách sạn nào tại {location}."
+                        responses = [f"Không có khách sạn nào tại {location}."]
                 else:
-                    response = "Xin vui lòng cung cấp địa điểm bạn muốn tìm kiếm."
+                    responses = ["Xin vui lòng cung cấp địa điểm bạn muốn tìm kiếm."]
             elif tag == "kiem_tra_phong_trong":
                 # Kiểm tra phòng trống
-                hotel_name = extract_hotel_name(message, db)  # Hàm này cần triển khai
+                hotel_name = extract_hotel_name(message, db)
+                number_of_people = extract_number_of_people(message)
+                
                 if hotel_name:
                     rooms = find_available_rooms(hotel_name, db)
-                    if isinstance(rooms, str):  # Nếu rooms là thông báo lỗi
+                    if isinstance(rooms, str):  
                         response = rooms
                     else:
-                        response = f"Các phòng trống tại {hotel_name}:\n"
-                        for room in rooms:
-                            response += f"- {room['room_type']}: {room['room_number']}. Giá: {room['price_per_night']} VND.\n"
+                        responses.append(f"Các phòng trống tại {hotel_name}:")
+                        for index, room in enumerate(rooms, start=1):
+                            response = f"{index}. {room['room_type']}: {room['room_number']}. Giá: {room['price_per_night']} $."
+                            responses.append(response)
                 else:
-                    response = "Xin vui lòng cung cấp tên khách sạn bạn muốn kiểm tra."
+                    responses = ["Xin vui lòng cung cấp tên khách sạn bạn muốn kiểm tra."]
             else:
                 # Phản hồi mặc định từ intents.json
-                response = random.choice(i['responses'])
+                responses = random.choice(i['responses'])
             break
-    return response
+    return responses

@@ -20,7 +20,7 @@ const ChatBot = () => {
   useEffect(() => {
     const fetchWelcomeMessage = async () => {
       try {
-        const response = await fetch('http://192.168.1.8:5000/chatbot/init', {
+        const response = await fetch('http://192.168.1.9:5000/chatbot/init', {
           method: 'GET',
         });
         if (!response.ok) {
@@ -43,7 +43,7 @@ const ChatBot = () => {
     setInput('');
 
     try {
-      const response = await fetch('http://192.168.88.166:5000/chatbot', {
+      const response = await fetch('http://192.168.1.9:5000/chatbot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input }),
@@ -53,7 +53,20 @@ const ChatBot = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      setMessages([...newMessages, { text: data.response, isUser: false }]);
+
+      //Kiểm tra nếu phản hồi là danh sách hoặc chuỗi
+      const botMessages = Array.isArray(data.response)
+      ? data.response
+      : data.response;
+
+      //setMessages([...newMessages, ...botMessages]);
+      botMessages.forEach((msg, index) => {
+        setTimeout(() => {
+          setMessages((prevMessages) => [
+            ...prevMessages, {text: msg, isUser: false},
+          ]);
+        }, 1000 * index);
+      });
     } catch (error) {
       console.error('Error sending message:', error);
       // Optional: Show an error message in the UI if needed
@@ -123,6 +136,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 2,
     borderRadius: 10,
+    marginLeft: '20%',
   },
   botMessage: {
     alignSelf: 'flex-start',
@@ -130,6 +144,7 @@ const styles = StyleSheet.create({
     color: '#000',
     padding: 10,
     marginVertical: 2,
+    marginRight: '20%',
     borderRadius: 10,
   },
   inputContainer: {
