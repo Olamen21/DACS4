@@ -57,11 +57,17 @@ def predict_class(sentence):
 
     return return_list
 
-def extract_location(message):
-    locations = ["Đà Nẵng", "Huế", "Hội An"]
-    for location in locations:
-        if re.search(r'\b' + re.escape(location) + r'\b', message, re.IGNORECASE):
-            return location
+def extract_city_name(message, db):
+    city_collection = db['cities']
+    names = []
+
+    for city in city_collection.find():
+        if 'name' in city:
+            names.append(city['name'])
+
+    for name in names:
+        if name.lower() in message.lower():
+            return name
     return None
 
 def extract_hotel_name(message, db):
@@ -69,8 +75,8 @@ def extract_hotel_name(message, db):
     hotel_names = []
 
     for hotel in hotels_collection.find():
-        if 'name' in hotel:
-            hotel_names.append(hotel['name'])
+        if 'nameHotel' in hotel:
+            hotel_names.append(hotel['nameHotel'])
 
     for hotel_name in hotel_names:
         if hotel_name.lower() in message.lower():
@@ -78,33 +84,38 @@ def extract_hotel_name(message, db):
 
     return None
 
-def find_hotels_by_location(location, db):
+def find_hotels_by_location(city_name, db):
+    cities_collection = db["cities"]
     hotels_collection = db["hotels"]
-    hotels = hotels_collection.find({"location": location})
+
+    city = cities_collection.find_one({"name": city_name})
+    if not city:
+        return f"Không có khách sạn nào tại '{city_name}'."
+
+    hotels = hotels_collection.find({"id_city": city["_id"]})
     return [
         {
-            "name": hotel["name"],
-            "rating": hotel.get("rating", "N/A"),
-            "description": hotel.get("description", ""),
-            "contact": hotel.get("contact", "N/A")
+            "nameHotel"         : hotel.get("nameHotel", "N/A"),
+            "address"           : hotel.get("address", "N/A"),
+            "contactNumber"     : hotel.get("contactNumber", "N/A")
         }
         for hotel in hotels
-    ]
+    ] or f"Không có khách sạn nào tại '{city_name}'."
 
 def find_available_rooms(hotel_name, db):
-    hotels_collection = db["hotels"]
-    rooms_collection = db["rooms"]
+    hotels_collection   = db["hotels"]
+    rooms_collection    = db["rooms"]
 
-    hotel = hotels_collection.find_one({"name": hotel_name})
+    hotel = hotels_collection.find_one({"nameHotel": hotel_name})
     if not hotel:
         return f"Không tìm thấy khách sạn '{hotel_name}'."
 
-    rooms = rooms_collection.find({"hotel_id": hotel["_id"], "availability": True})
+    rooms = rooms_collection.find({"id_hotel": hotel["_id"], "availability": True})
     return [
         {
-            "room_number": room.get("room_number", "N/A"),
-            "type": room.get("type", "N/A"),
-            "price": room.get("price", "N/A")
+            "room_number"       : room.get("room_number", "N/A"),
+            "room_type"         : room.get("room_type", "N/A"),
+            "price_per_night"   : room.get("price_per_night", "N/A")
         }
         for room in rooms
     ] or f"Không còn phòng trống tại {hotel_name}."
@@ -118,13 +129,13 @@ def get_response(intents_list, intents_json, message, db):
         if i['tag'] == tag:
             if tag == "dia_diem":
                 # Tìm khách sạn theo địa điểm
-                location = extract_location(message)
+                location = extract_city_name(message, db)
                 if location:
                     hotels = find_hotels_by_location(location, db)
                     if hotels:
                         response = "Tôi đã tìm thấy các khách sạn tại {}:\n".format(location)
                         for hotel in hotels:
-                            response += f"- {hotel['name']} (Rating: {hotel['rating']}): {hotel['description']}. Liên hệ: {hotel['contact']}.\n"
+                            response += f"- {hotel['nameHotel']} (Địa chỉ: {hotel['address']}). Liên hệ: {hotel['contactNumber']}.\n"
                     else:
                         response = f"Không có khách sạn nào tại {location}."
                 else:
@@ -139,7 +150,7 @@ def get_response(intents_list, intents_json, message, db):
                     else:
                         response = f"Các phòng trống tại {hotel_name}:\n"
                         for room in rooms:
-                            response += f"- {room['type']}: {room['room_number']}. Giá: {room['price']} VND.\n"
+                            response += f"- {room['room_type']}: {room['room_number']}. Giá: {room['price_per_night']} VND.\n"
                 else:
                     response = "Xin vui lòng cung cấp tên khách sạn bạn muốn kiểm tra."
             else:
