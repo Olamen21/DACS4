@@ -21,7 +21,7 @@ module.exports={
     updateCity: async (req, res) => {
         try {
             const cityId = req.params.id; 
-            const updatedCity = await User.findByIdAndUpdate(
+            const updatedCity = await City.findByIdAndUpdate(
                 cityId,
                 { $set: req.body }, 
                 { new: true }       
@@ -71,4 +71,31 @@ module.exports={
             res.status(500).json("failed to get the City")
         }
     },
+    searchCity: async (req, res) => {
+        try {
+            const { key } = req.params; // Lấy tham số 'key' từ URL
+
+            // Kiểm tra nếu không có giá trị key
+            if (!key) {
+                return res.status(400).json({ message: "Please provide a search key" });
+            }
+
+            // Tìm kiếm thành phố theo tên, không phân biệt chữ hoa/chữ thường
+            const cities = await City.find({ name: { $regex: key, $options: 'i' } });
+
+            // Kiểm tra nếu không tìm thấy kết quả nào
+            if (cities.length === 0) {
+                return res.status(404).json({ message: "No cities found with the given key" });
+            }
+
+            // Trả về kết quả tìm kiếm
+            res.status(200).json(cities);
+        } catch (error) {
+            console.error("Search error:", error);
+            res.status(500).json({ message: "Failed to search for cities", error: error.message });
+        }
+    }
+
+    
+    
 }
