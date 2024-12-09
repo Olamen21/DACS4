@@ -24,9 +24,9 @@ const Home = ({ navigation }) => {
 
   const handleSearch = () => {
     if (search.trim() !== '' && !recentSearches.includes(search)) {
-      setRecentSearches([search, ...recentSearches]); // Add new search to the beginning of the list
-      setSearch(''); // Clear search input after submitting
-      setIsSearching(true); // Cập nhật trạng thái isSearching thành true
+      setRecentSearches([search, ...recentSearches]); 
+      setSearch(''); 
+      setIsSearching(true); 
 
       navigation.navigate('FindSearch', { searchQuery: search });
     }
@@ -62,7 +62,7 @@ const Home = ({ navigation }) => {
                 />
               );
             case 'whereToGo':
-              return <DestinationListComponent />;
+              return <DestinationListComponent navigation={navigation} />;
             case 'travelTips':
               return (
                 <TravelTipsComponent
