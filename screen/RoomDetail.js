@@ -42,6 +42,80 @@ const RoomDetail = ({ navigation }) => {
   }
   ).current;
 
+<<<<<<< Updated upstream
+=======
+
+
+  const BackHome = () => {
+    console.log("Back")
+    navigation.navigate("Home")
+  }
+
+  const Booking = () =>{
+    console.log(checkIn)
+    console.log(checkOut)
+  }
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Lấy thông tin khách sạn
+        const resHotel = await axios.get(API_URL + API_URL_HOTEL + hotelId);
+        setDataHotel(resHotel.data);
+        const hotelImage = resHotel.data.imageUrl || "default_hotel_image_url";
+
+        // Chuyển đổi amenities
+        const amenitiesFromDb = resHotel.data.amenities
+          .split(',')
+          .map((amenity) => amenity.trim());
+
+        // Lọc amenitiesList dựa trên dữ liệu từ DB
+        const filtered = amenitiesList.filter((item) =>
+          amenitiesFromDb.includes(item.label)
+        );
+        setFilteredAmenities(filtered);
+
+        const resRoom = await axios.get(`${API_URL}${API_URL_ROOM}search/${hotelId}`);
+        const rooms = resRoom.data;
+        setRoomHotel(rooms);
+        const roomImages = resRoom.data
+          .map((room) => room.roomImages || [])
+          .flat();
+
+
+        const combinedImages = [hotelImage, ...roomImages]
+          .filter((img) => img && typeof img === "string" && img.startsWith("http"));
+        console.log("Hotel Image:", hotelImage);
+        console.log("Room Images:", roomImages);
+        console.log("Combined Images:", combinedImages);
+
+
+
+        // Lưu vào state
+        setImages(combinedImages);
+
+        // Tìm giá nhỏ nhất và lớn nhất
+        const prices = rooms.map((room) => room.price_per_night);
+
+        if (prices.length === 1 || Math.min(...prices) === Math.max(...prices)) {
+          // Khi chỉ có một phòng hoặc min/max trùng nhau
+          setMinPrice(Math.min(...prices));
+          setMaxPrice(null); // Không cần set giá trị max
+        } else {
+          // Khi có nhiều phòng với các mức giá khác nhau
+          setMinPrice(Math.min(...prices));
+          setMaxPrice(Math.max(...prices));
+        }
+
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchData();
+  }, [hotelId]);
+
+
+>>>>>>> Stashed changes
   return (
     <View style={styles.container}>
       <View style={styles.header}>
