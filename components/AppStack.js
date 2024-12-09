@@ -15,6 +15,7 @@ import {
   SearchFilterScreen,
   RoomDetail,
   BookingHotel,
+  HotelInCity,
 } from '../screen';
 
 const Tab = createBottomTabNavigator();
@@ -51,6 +52,11 @@ const AppStack = () => {
       <Stack.Screen
         name="BookingHotel"
         component={BookingHotel}
+        options={{ headerShown: false }} // Hiện header cho EditProfile
+      />
+        <Stack.Screen
+        name="HotelInCity"
+        component={HotelInCity}
         options={{ headerShown: false }} // Hiện header cho EditProfile
       />
     </Stack.Navigator>
