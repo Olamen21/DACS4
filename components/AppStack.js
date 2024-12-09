@@ -13,6 +13,8 @@ import {
   ChatBot,
   FindSearchScreen,
   SearchFilterScreen,
+  RoomDetail,
+  BookingHotel,
 } from '../screen';
 
 const Tab = createBottomTabNavigator();
@@ -39,6 +41,16 @@ const AppStack = () => {
       <Stack.Screen
         name="History"
         component={History}
+        options={{ headerShown: false }} // Hiện header cho EditProfile
+      />
+      <Stack.Screen
+        name="RoomDetail"
+        component={RoomDetail}
+        options={{ headerShown: false }} // Hiện header cho EditProfile
+      />
+      <Stack.Screen
+        name="BookingHotel"
+        component={BookingHotel}
         options={{ headerShown: false }} // Hiện header cho EditProfile
       />
     </Stack.Navigator>
