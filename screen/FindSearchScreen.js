@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
-import { View, Text, Image, ScrollView, StyleSheet, TouchableOpacity, Modal, TextInput} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, ScrollView, StyleSheet, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { Icon, SearchBar } from 'react-native-elements';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
+import axios from 'axios';
+import { API_URL, API_URL_CITY, API_URL_HOTEL, API_URL_ROOM } from '@env';
 
-const FindSearchScreen = ({ route, navigation}) => {
+const FindSearchScreen = ({ route, navigation }) => {
 
     const { searchQuery } = route.params;
+    const [cityId, setCityId] = useState('')
     const [isFilterVisible, setFilterVisible] = React.useState(false);
     const [destination, setDestination] = useState('');
     const [checkInDate, setCheckInDate] = useState(new Date(2024, 11, 12));
@@ -18,6 +22,12 @@ const FindSearchScreen = ({ route, navigation}) => {
     const [priceMax, setPriceMax] = useState(250);
     const [showCheckInPicker, setShowCheckInPicker] = useState(false);
     const [showCheckOutPicker, setShowCheckOutPicker] = useState(false);
+
+    const [dataHotel, setDataHotel] = useState([]);
+    const [roomPrices, setRoomPrices] = useState({});
+    const [numberOfHotels, setNumberOfHotels] = useState('')
+
+
 
     const handleReset = () => {
         setDestination('');
@@ -32,14 +42,62 @@ const FindSearchScreen = ({ route, navigation}) => {
     const handleApply = () => {
         // Xử lý logic khi người dùng nhấn nút "Apply"
         console.log('Filters Applied');
+        setFilterVisible(false)
     };
-
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const res = await axios.get(API_URL + API_URL_CITY + 'search/' + searchQuery);
+                const cityId = res.data[0]._id;  // Lưu cityId từ API thành phố
+    
+                setCityId(cityId);
+    
+                const responsive = await axios.get(API_URL + API_URL_HOTEL + "search/" + cityId);
+                const hotels = responsive.data;
+                setNumberOfHotels(hotels.length);
+                setDataHotel(hotels);
+    
+                if (hotels.length === 0) return;
+    
+                // Fetch room data for each hotel
+                const roomDataPromises = hotels.map(hotel =>
+                    axios.get(API_URL + API_URL_ROOM + "search/" + hotel._id)
+                        .then(response => ({ hotelId: hotel._id, rooms: response.data }))
+                        .catch(error => {
+                            return { hotelId: hotel._id, rooms: [] }; // Trả về mảng rỗng nếu có lỗi
+                        })
+                );
+    
+                const roomResponses = await Promise.all(roomDataPromises);
+    
+                // Process room data to find min and max prices
+                const roomPricesMap = {};
+                roomResponses.forEach(({ hotelId, rooms }) => {
+                    if (rooms.length > 0) {
+                        const prices = rooms.map(room => room.price_per_night);
+                        roomPricesMap[hotelId] = {
+                            minPrice: Math.min(...prices),
+                            maxPrice: Math.max(...prices),
+                        };
+                    } else {
+                        roomPricesMap[hotelId] = null; // Không có phòng
+                    }
+                });
+    
+                setRoomPrices(roomPricesMap);
+            } catch (error) {
+                console.log("Error fetching data:", error.response ? error.response.data : error.message);
+            }
+        };
+        fetchData();
+    }, [searchQuery]); // Thêm searchQuery vào dependency array nếu bạn muốn hàm này được gọi lại khi searchQuery thay đổi
+    
     return (
         <View style={styles.container}>
             {/* Header cố định */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Icon name="arrow-back" size={24} color="black"/>
+                    <Icon name="arrow-back" size={24} color="black" />
                 </TouchableOpacity>
                 <Text style={styles.searchTitle}>Search</Text>
                 <View style={{ width: 24 }} />
@@ -47,95 +105,72 @@ const FindSearchScreen = ({ route, navigation}) => {
 
             <View style={styles.searchBarContainer}>
                 <View style={styles.searchBarWrapper}>
-                <SearchBar
-                    placeholder={`Hotel in ${searchQuery}`}
-                    containerStyle={styles.searchBarContainerStyle}
-                    inputContainerStyle={styles.searchBarInputContainerStyle}
-                    inputStyle={styles.searchBarInputStyle}
-                    searchIcon={<Icon name="search" size={17} color="gray" />}
-                />
+                    <SearchBar
+                        placeholder={`Hotel in ${searchQuery}`}
+                        containerStyle={styles.searchBarContainerStyle}
+                        inputContainerStyle={styles.searchBarInputContainerStyle}
+                        inputStyle={styles.searchBarInputStyle}
+                        searchIcon={<Icon name="search" size={17} color="gray" />}
+                    />
                 </View>
             </View>
 
             <View style={styles.headerHotelList}>
-                <Text style={styles.hotelListTitle}>Hotel Lists (27)</Text>
-                <TouchableOpacity style={styles.sortButton}>
+                <Text style={styles.hotelListTitle}>Hotel Lists ({numberOfHotels})</Text>
+                <TouchableOpacity style={styles.sortButton} onPress={() => setFilterVisible(true)}>
                     <Text style={styles.sortButtonText}>Sort by</Text>
                 </TouchableOpacity>
             </View>
             {/* Nội dung có thể cuộn (Danh sách khách sạn) */}
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
+           {/* Nội dung có thể cuộn (Danh sách khách sạn) */}
+           <ScrollView contentContainerStyle={styles.scrollContainer}>
+                {dataHotel && dataHotel.length > 0 ? (
+                    dataHotel.map((hotel, index) => (
+                        <View key={index} style={styles.hotelCard}>
+                            <Image
+                                style={styles.hotelImage}
+                                source={{ uri: hotel.imageUrl }} // Sử dụng hình ảnh động từ API
+                            />
+                            <View style={styles.hotelInfo}>
+                                <Text style={styles.hotelName}>{hotel.nameHotel}</Text>
+                                <Text style={styles.hotelAddress}>
+                                    <Ionicons name='location-outline' size={16} />
+                                    {hotel.address}
+                                </Text>
+                                <View style={styles.hotelDetails}>
+                                    {/* <Text style={styles.hotelDistance}>{hotel._id}</Text> */}
+                                    {/* <Text style={styles.hotelRating}>⭐ {hotel.rating} ({hotel.reviewsCount})</Text> */}
+                                </View>
 
-                {/* Hotel Item 1 */}
-                <View style={styles.hotelCard}>
-                <Image
-                    style={styles.hotelImage}
-                    source={require('../img/hotelHilton.jpg')}
-                />
-                <View style={styles.hotelInfo}>
-                    <Text style={styles.hotelName}>Hilton Hotel</Text>
-                    <Text style={styles.hotelAddress}>50 Bạch Đằng, Hải Châu 1, Hải Châu, Đà Nẵng</Text>
-                    <View style={styles.hotelDetails}>
-                    <Text style={styles.hotelDistance}>3.29 km</Text>
-                    <Text style={styles.hotelRating}>⭐ 4.2 (2,003)</Text>
-                    </View>
-                    <Text style={styles.hotelPrice}>$200 /night</Text>
-                </View>
-                </View>
+                                {roomPrices[hotel._id] ? (
 
-                {/* Hotel Item 2 */}
-                <View style={styles.hotelCard}>
-                <Image
-                    style={styles.hotelImage}
-                    source={require('../img/hotelHilton.jpg')}
-                />
-                <View style={styles.hotelInfo}>
-                    <Text style={styles.hotelName}>Hilton Hotel</Text>
-                    <Text style={styles.hotelAddress}>50 Bạch Đằng, Hải Châu 1, Hải Châu, Đà Nẵng</Text>
-                    <View style={styles.hotelDetails}>
-                    <Text style={styles.hotelDistance}>3.29 km</Text>
-                    <Text style={styles.hotelRating}>⭐ 4.2 (2,003)</Text>
-                    </View>
-                    <Text style={styles.hotelPrice}>$200 /night</Text>
-                </View>
-                </View>
+                                    roomPrices[hotel._id].minPrice === roomPrices[hotel._id].maxPrice ? (
+                                        // Display a single price if only one room or all rooms have the same price
+                                        <Text style={styles.hotelPrice}>
+                                            ${roomPrices[hotel._id].minPrice} /night
+                                        </Text>
+                                    ) : (
+                                        // Display the price range if multiple rooms with different prices
+                                        <Text style={styles.hotelPrice}>
+                                            ${roomPrices[hotel._id].minPrice} - ${roomPrices[hotel._id].maxPrice} /night
+                                        </Text>
+                                    )
+                                ) : (
+                                    <Text style={styles.noRooms}>No rooms available</Text>
+                                )}
 
-                <View style={styles.hotelCard}>
-                <Image
-                    style={styles.hotelImage}
-                    source={require('../img/hotelHilton.jpg')}
-                />
-                <View style={styles.hotelInfo}>
-                    <Text style={styles.hotelName}>Hilton Hotel</Text>
-                    <Text style={styles.hotelAddress}>50 Bạch Đằng, Hải Châu 1, Hải Châu, Đà Nẵng</Text>
-                    <View style={styles.hotelDetails}>
-                    <Text style={styles.hotelDistance}>3.29 km</Text>
-                    <Text style={styles.hotelRating}>⭐ 4.2 (2,003)</Text>
-                    </View>
-                    <Text style={styles.hotelPrice}>$200 /night</Text>
-                </View>
-                </View>
-                <View style={styles.hotelCard}>
-                <Image
-                    style={styles.hotelImage}
-                    source={require('../img/hotelHilton.jpg')}
-                />
-                <View style={styles.hotelInfo}>
-                    <Text style={styles.hotelName}>Hilton Hotel</Text>
-                    <Text style={styles.hotelAddress}>50 Bạch Đằng, Hải Châu 1, Hải Châu, Đà Nẵng</Text>
-                    <View style={styles.hotelDetails}>
-                    <Text style={styles.hotelDistance}>3.29 km</Text>
-                    <Text style={styles.hotelRating}>⭐ 4.2 (2,003)</Text>
-                    </View>
-                    <Text style={styles.hotelPrice}>$200 /night</Text>
-                </View>
-                </View>
+                            </View>
+                        </View>
+                    ))
+                ) : (
+                    <Text style={styles.noHotels}>No hotels available</Text>
+                )}
             </ScrollView>
 
             {/* Filter Button cố định */}
-            <TouchableOpacity style={styles.filterButton} onPress={() => setFilterVisible(true)}>
+            {/* <TouchableOpacity style={styles.filterButton} onPress={() => setFilterVisible(true)}>
                 <Text style={styles.filterButtonText}>Filters</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <Modal
                 animationType="slide"
@@ -150,7 +185,7 @@ const FindSearchScreen = ({ route, navigation}) => {
                         <View>
                             <Text style={styles.label}>Destination</Text>
                             <View style={styles.iconInputContainer}>
-                                <FontAwesome name="map-marker" size={17}/>
+                                <FontAwesome name="map-marker" size={17} />
                                 <TextInput
                                     style={styles.input}
                                     value={destination}
@@ -164,19 +199,19 @@ const FindSearchScreen = ({ route, navigation}) => {
                             <View style={styles.rowItem}>
                                 <Text style={styles.label}>Check In</Text>
                                 <View style={styles.iconInputContainer}>
-                                    <FontAwesome name="calendar-check-o" size={17}/>
+                                    <FontAwesome name="calendar-check-o" size={17} />
                                     <TouchableOpacity style={styles.dateInput} onPress={() => setShowCheckInPicker(true)} activeOpacity={0.7}>
                                         <Text>{checkInDate.toDateString()}</Text>
                                     </TouchableOpacity>
                                     {showCheckInPicker && (
                                         <DateTimePicker
-                                        value={checkInDate}
-                                        mode="date"
-                                        display="default"
-                                        onChange={(event, date) => {
-                                            setShowCheckInPicker(false);
-                                            if (date) setCheckInDate(date);
-                                        }}
+                                            value={checkInDate}
+                                            mode="date"
+                                            display="default"
+                                            onChange={(event, date) => {
+                                                setShowCheckInPicker(false);
+                                                if (date) setCheckInDate(date);
+                                            }}
                                         />
                                     )}
                                 </View>
@@ -185,19 +220,19 @@ const FindSearchScreen = ({ route, navigation}) => {
                             <View style={styles.rowItem}>
                                 <Text style={styles.label}>Check Out</Text>
                                 <View style={styles.iconInputContainer}>
-                                    <FontAwesome name="calendar-check-o" size={17}/>
+                                    <FontAwesome name="calendar-check-o" size={17} />
                                     <TouchableOpacity onPress={() => setShowCheckOutPicker(true)} activeOpacity={0.7}>
                                         <Text style={styles.dateInput}>{checkOutDate.toDateString()}</Text>
                                     </TouchableOpacity>
                                     {showCheckOutPicker && (
                                         <DateTimePicker
-                                        value={checkOutDate}
-                                        mode="date"
-                                        display="default"
-                                        onChange={(event, date) => {
-                                            setShowCheckOutPicker(false);
-                                            if (date) setCheckOutDate(date);
-                                        }}
+                                            value={checkOutDate}
+                                            mode="date"
+                                            display="default"
+                                            onChange={(event, date) => {
+                                                setShowCheckOutPicker(false);
+                                                if (date) setCheckOutDate(date);
+                                            }}
                                         />
                                     )}
                                 </View>
@@ -208,16 +243,16 @@ const FindSearchScreen = ({ route, navigation}) => {
                             <View style={styles.rowItem}>
                                 <Text style={styles.label}>Guest</Text>
                                 <View style={styles.iconInputContainer}>
-                                    <FontAwesome name="user-circle-o" size={17}/>
+                                    <FontAwesome name="user-circle-o" size={17} />
                                     <Picker
                                         selectedValue={guest}
                                         style={styles.picker}
                                         onValueChange={(itemValue) => setGuest(itemValue)}
                                     >
-                                        <Picker.Item label="1"   value={1} />
-                                        <Picker.Item label="2"   value={2} />
-                                        <Picker.Item label="3"   value={3} />
-                                        <Picker.Item label="4"   value={4} />
+                                        <Picker.Item label="1" value={1} />
+                                        <Picker.Item label="2" value={2} />
+                                        <Picker.Item label="3" value={3} />
+                                        <Picker.Item label="4" value={4} />
                                     </Picker>
                                 </View>
                             </View>
@@ -225,16 +260,16 @@ const FindSearchScreen = ({ route, navigation}) => {
                             <View style={styles.rowItem}>
                                 <Text style={styles.label}>Room</Text>
                                 <View style={styles.iconInputContainer}>
-                                    <FontAwesome name="bed" size={17}/>
+                                    <FontAwesome name="bed" size={17} />
                                     <Picker
                                         selectedValue={room}
                                         style={styles.picker}
                                         onValueChange={(itemValue) => setRoom(itemValue)}
                                     >
-                                        <Picker.Item label="1"    value={1}   />
-                                        <Picker.Item label="2"    value={2}   />
-                                        <Picker.Item label="3"    value={3}   />
-                                        <Picker.Item label="4"    value={4}   />
+                                        <Picker.Item label="1" value={1} />
+                                        <Picker.Item label="2" value={2} />
+                                        <Picker.Item label="3" value={3} />
+                                        <Picker.Item label="4" value={4} />
                                     </Picker>
                                 </View>
                             </View>
@@ -244,7 +279,7 @@ const FindSearchScreen = ({ route, navigation}) => {
                             <View style={styles.rowItem}>
                                 <Text style={styles.label}>Price Minimum</Text>
                                 <View style={styles.iconInputContainer}>
-                                    <FontAwesome name="dollar" size={17}/>
+                                    <FontAwesome name="dollar" size={17} />
                                     <TextInput
                                         style={styles.input}
                                         value={String(priceMin)}
@@ -257,7 +292,7 @@ const FindSearchScreen = ({ route, navigation}) => {
                             <View style={styles.rowItem}>
                                 <Text style={styles.label}>Price Maximum</Text>
                                 <View style={styles.iconInputContainer}>
-                                    <FontAwesome name="dollar" size={17}/>
+                                    <FontAwesome name="dollar" size={17} />
                                     <TextInput
                                         style={styles.input}
                                         value={String(priceMax)}
