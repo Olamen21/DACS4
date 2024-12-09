@@ -1,67 +1,62 @@
+// DestinationListComponent.js
 import React, { useEffect, useState } from 'react';
-import { View, Image, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Image, Text, FlatList, StyleSheet, Pressable } from 'react-native';
 import { API_URL, API_URL_CITY, API_URL_HOTEL } from '@env';
 import axios from 'axios';
 
-const DestinationListComponent = () => {
-  const [dataCity, setDataCity] = useState([]); 
+const DestinationListComponent = ({ navigation }) => { // Xóa 'city' prop vì không cần
+  const [dataCity, setDataCity] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Lấy dữ liệu từ API thành phố
         const resCity = await axios.get(API_URL + API_URL_CITY);
-        const cityData = resCity.data; // Lưu dữ liệu thành phố vào biến cityData
+        const cityData = resCity.data;
 
-        // Lấy số lượng khách sạn cho mỗi thành phố
         const updatedCityData = await Promise.all(
           cityData.map(async (city) => {
-            // Gửi yêu cầu API khách sạn cho từng thành phố
             const resHotel = await axios.get(API_URL + API_URL_HOTEL + 'search/' + city._id);
-            const numberOfHotels = resHotel.data.length; // Số khách sạn trong thành phố
+            const numberOfHotels = resHotel.data.length;
 
-            // Trả về thành phố với số lượng khách sạn cập nhật
             return {
               ...city,
-              hotels: `${numberOfHotels} Hotels`, // Cập nhật số lượng khách sạn
+              hotels: `${numberOfHotels}`,
             };
           })
         );
 
-        // Cập nhật state với dữ liệu thành phố đã được cập nhật
         setDataCity(updatedCityData);
-
       } catch (error) {
-        console.log(error); 
+        console.log(error);
       }
     };
 
-    fetchData(); 
-  }, []); 
+    fetchData();
+  }, []);
 
+  // Di chuyển Pressable vào trong renderDestinationItem
   const renderDestinationItem = ({ item }) => (
-    <View style={styles.destinationItem}>
-      {/* Hiển thị hình ảnh thành phố */}
-      <Image
-        source={{ uri: item.img }} 
-        style={styles.destinationImage}
-      />
-      <View style={styles.textContainer}>
-        {/* Hiển thị tên thành phố */}
-        <Text style={styles.destinationName}>{item.name}</Text>
-        {/* Hiển thị số lượng khách sạn */}
-        <Text style={styles.destinationHotels}>{item.hotels}</Text>
+    <Pressable onPress={() => navigation.navigate('HotelInCity', { cityId: item._id, numberOfHotels:item.hotels })}>
+      <View style={styles.destinationItem}>
+        <Image
+          source={{ uri: item.img }}
+          style={styles.destinationImage}
+        />
+        <View style={styles.textContainer}>
+          <Text style={styles.destinationName}>{item.name}</Text>
+          <Text style={styles.destinationHotels}>{item.hotels} Hotels</Text>
+        </View>
       </View>
-    </View>
+    </Pressable>
   );
 
   return (
     <View style={styles.wannaGo}>
       <Text style={styles.recentText}>Where do you wanna go?</Text>
       <FlatList
-        data={dataCity} // Dùng dữ liệu từ API đã cập nhật
+        data={dataCity}
         renderItem={renderDestinationItem}
-        keyExtractor={(item) => item._id.toString()} // Đảm bảo id là chuỗi
+        keyExtractor={(item) => item._id.toString()}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.destinationList}
@@ -69,6 +64,9 @@ const DestinationListComponent = () => {
     </View>
   );
 };
+
+
+
 
 const styles = StyleSheet.create({
   wannaGo: {
