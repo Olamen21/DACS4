@@ -1,40 +1,22 @@
-import { Image, StyleSheet, Text, View, Dimensions } from 'react-native'
-import React from 'react'
+import { View, Image, StyleSheet } from 'react-native';
 
-
-const {width, height} = Dimensions.get('screen');
-const SliderItem = ({item}) => {
+const SliderItem = ({ item, hotelId }) => {
   return (
     <View style={styles.container}>
-      <Image source={item.img} resizeMode='contain' style={styles.imageFlat}/>
+      <Image source={{uri:item}} style={styles.image} />
     </View>
-  )
-}
+  );
+};
 
-export default SliderItem
+export default SliderItem;
 
 const styles = StyleSheet.create({
-  container:{
-    width,
-    height,
-    alignItems:'center',
+  container: {
+    alignItems: 'center',
   },
-  imageFlat:{
-    flex: 0.35,
-    width: '130%',
+  image: {
+    width: 450,
+    height: 300,
+    borderRadius: 10,
   },
-  content:{
-    flex: 0.4,
-    alignItems:'center',
-  },
-  Title:{
-    fontSize:24,
-    fontWeight:'bold',
-    color: 'white'
-  },
-  description:{
-    fontSize: 18,
-    marginVertical: 12,
-    color: 'white'
-  }
-})
+});
