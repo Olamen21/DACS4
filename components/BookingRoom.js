@@ -1,309 +1,234 @@
-import {  StyleSheet,
-    Text,
-    View,
-    Modal,
-    Dimensions,
-    TextInput,
-    Platform,
-    Pressable,
-    } from 'react-native'
-import COLORS from '../style/Colors'
+import {
+  StyleSheet,
+  Text,
+  View,
+  Modal,
+  Dimensions,
+  TextInput,
+  Platform,
+  Pressable,
+  TouchableOpacity
+} from 'react-native'
+
 import DateTimePicker from '@react-native-community/datetimepicker';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import React, { useState, useRef, useEffect } from 'react'
-import DropDownPicker from 'react-native-dropdown-picker';
+import { Picker } from '@react-native-picker/picker';
+
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
-const BookingRoom = ({modalVisible, setModalVisible}) => {
-    const [checkIn, setCheckIn] = useState("");
-    const [checkOut, setCheckOut] = useState("");
-    const [guests, setGuests] = useState(1);
-    const [rooms, setRooms] = useState(1);
-  
-    const [open, setOpen] = useState(false);
-    const [value, setValue] = useState(null);
-    const [items, setItems] = useState([
-      { label: 'Apple', value: 'apple' },
-      { label: 'Banana', value: 'banana' },
-      { label: 'Orange', value: 'orange' },
-    ]);
-    
-  const [date, setDate] = useState(new Date())
-  const [showPicker, setShowPicker] = useState(false)
-  const maxDate = new Date();
-  const formatDate = (rawDate) => {
-    let date = new Date(rawDate);
+const BookingRoom = ({ modalVisible, setModalVisible }) => {
 
-    let year = date.getFullYear();
-    let month = date.getMonth() + 1;
-    let day = date.getDate();
+  // const [isFilterVisible, setFilterVisible] = React.useState(false);
+  const [checkInDate, setCheckInDate] = useState(new Date(2024, 11, 12));
+  const [checkOutDate, setCheckOutDate] = useState(new Date(2024, 11, 14));
+  const [guest, setGuest] = useState(2);
+  const [room, setRoom] = useState(1);
+  const [showCheckInPicker, setShowCheckInPicker] = useState(false);
+  const [showCheckOutPicker, setShowCheckOutPicker] = useState(false);
 
-    return `${day}-${month}-${year}`;
-  }
-  const toggleDatepicker = () => {
-    setShowPicker(!showPicker);
+  const handleReset = () => {
+
+    setCheckInDate(new Date(2024, 11, 12));
+    setCheckOutDate(new Date(2024, 11, 14));
+    setGuest(2);
+    setRoom(1);
+
   };
-  const onChangeCheckIn = ({ type }, selectedDate) => {
-    if (type == "set") {
-      const currentDate = selectedDate;
-      setDate(currentDate);
 
-      if (Platform.OS === 'android') {
-        toggleDatepicker();
-        setCheckIn(formatDate(currentDate))
-      }
-
-    } else {
-      toggleDatepicker();
-    }
+  const handleApply = () => {
+    // Xử lý logic khi người dùng nhấn nút "Apply"
+    console.log('Filters Applied');
+    setModalVisible(false)
   };
-  const onChangeCheckOut = ({ type }, selectedDate) => {
-    if (type == "set") {
-      const currentDate = selectedDate;
-      setDate(currentDate);
 
-      if (Platform.OS === 'android') {
-        toggleDatepicker();
-        setCheckOut(formatDate(currentDate))
-      }
+  return (
+    <View>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Search Filter</Text>
 
-    } else {
-      toggleDatepicker();
-    }
-  };
-  const bookingRoom = () =>{
-    
-    console.log(checkIn)
-    console.log(checkOut)
-  }
-    return (
-        <View>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.titleModal}>Booking Hotel</Text>
 
-                        {/* Input fields */}
-                        <View style={styles.dateContainer}>
-                            <View style={styles.dateCheckIn}>
-                                <Text style={styles.contentText}>Check-in</Text>
 
-                                {showPicker && (
-                                    <DateTimePicker
-                                        mode='date'
-                                        display='spinner'
-                                        value={date}
-                                        onChange={onChangeCheckIn}
-                                        // maximumDate={new Date(maxDate)}
-                                        minimumDate={new Date(maxDate)}
-                                    />
-                                )}
-
-                                {!showPicker && (
-                                    <Pressable
-                                        onPress={toggleDatepicker}
-                                    >
-                                        <TextInput
-                                            placeholder="Sat Aug 21 2004"
-                                            placeholderTextColor={COLORS.grey}
-                                            value={checkIn}
-                                            onChangeText={setCheckIn}
-                                            style={styles.fill}
-                                            editable={false}
-                                        />
-                                    </Pressable>
-                                )}
-                            </View>
-                            <View style={styles.dateCheckOut}>
-                                <Text style={styles.contentText}>Check-out</Text>
-
-                                {showPicker && (
-                                    <DateTimePicker
-                                        mode='date'
-                                        display='spinner'
-                                        value={date}
-                                        onChange={onChangeCheckOut}
-                                        // maximumDate={new Date(maxDate)}
-                                        minimumDate={new Date(maxDate)}
-                                    />
-                                )}
-
-                                {!showPicker && (
-                                    <Pressable
-                                        onPress={toggleDatepicker}
-                                    >
-                                        <TextInput
-                                            placeholder="Sat Aug 21 2004"
-                                            placeholderTextColor={COLORS.grey}
-                                            value={checkOut}
-                                            onChangeText={setCheckOut}
-                                            style={styles.fill}
-                                            editable={false}
-                                        />
-                                    </Pressable>
-                                )}
-                            </View>
-
-                        </View>
-
-                        <View style={styles.counterContainer}>
-                            <View style={styles.counter}>
-                                <Text style={styles.contentText}>Guests</Text>
-                                <View style={styles.counterControls}>
-                                    <Pressable
-                                        onPress={() => setGuests(Math.max(1, guests - 1))}
-                                        style={styles.counterButton}
-                                    >
-                                        <Text style={styles.counterButtonText}>-</Text>
-                                    </Pressable>
-                                    <Text style={styles.textGuests}>{guests}</Text>
-                                    <Pressable
-                                        onPress={() => setGuests(guests + 1)}
-                                        style={styles.counterButton}
-                                    >
-                                        <Text style={styles.counterButtonText}>+</Text>
-                                    </Pressable>
-                                </View>
-                            </View>
-                            <View style={styles.counter}>
-                                <Text style={styles.contentText}>Rooms</Text>
-                                <DropDownPicker
-                                    open={open}
-                                    value={value}
-                                    items={items}
-                                    setOpen={setOpen}
-                                    setValue={setValue}
-                                    setItems={setItems}
-                                    style={styles.selectedRoom}
-                                    placeholder="Select room"
-                                />
-                            </View>
-                        </View>
-
-                        {/* Find button */}
-                        <Pressable style={styles.findButton} onPress={() => bookingRoom()}>
-                            <Text style={styles.findButtonText}>Booking</Text>
-                        </Pressable>
-
-                        {/* Close button */}
-                        <Pressable onPress={() => setModalVisible(false)}>
-                            <Text style={styles.closeText}>Close</Text>
-                        </Pressable>
-                    </View>
+            <View style={styles.row}>
+              <View style={styles.rowItem}>
+                <Text style={styles.label}>Check In</Text>
+                <View style={styles.iconInputContainer}>
+                  <FontAwesome name="calendar-check-o" size={17} />
+                  <TouchableOpacity style={styles.dateInput} onPress={() => setShowCheckInPicker(true)} activeOpacity={0.7}>
+                    <Text>{checkInDate.toDateString()}</Text>
+                  </TouchableOpacity>
+                  {showCheckInPicker && (
+                    <DateTimePicker
+                      value={checkInDate}
+                      mode="date"
+                      display="default"
+                      onChange={(event, date) => {
+                        setShowCheckInPicker(false);
+                        if (date) setCheckInDate(date);
+                      }}
+                    />
+                  )}
                 </View>
-            </Modal>
+              </View>
+
+              <View style={styles.rowItem}>
+                <Text style={styles.label}>Check Out</Text>
+                <View style={styles.iconInputContainer}>
+                  <FontAwesome name="calendar-check-o" size={17} />
+                  <TouchableOpacity onPress={() => setShowCheckOutPicker(true)} activeOpacity={0.7}>
+                    <Text style={styles.dateInput}>{checkOutDate.toDateString()}</Text>
+                  </TouchableOpacity>
+                  {showCheckOutPicker && (
+                    <DateTimePicker
+                      value={checkOutDate}
+                      mode="date"
+                      display="default"
+                      onChange={(event, date) => {
+                        setShowCheckOutPicker(false);
+                        if (date) setCheckOutDate(date);
+                      }}
+                    />
+                  )}
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.rowItem}>
+                <Text style={styles.label}>Guest</Text>
+                <View style={styles.iconInputContainer}>
+                  <FontAwesome name="user-circle-o" size={17} />
+                  <Picker
+                    selectedValue={guest}
+                    style={styles.picker}
+                    onValueChange={(itemValue) => setGuest(itemValue)}
+                  >
+                    <Picker.Item label="1" value={1} />
+                    <Picker.Item label="2" value={2} />
+                    <Picker.Item label="3" value={3} />
+                    <Picker.Item label="4" value={4} />
+                  </Picker>
+                </View>
+              </View>
+
+              <View style={styles.rowItem}>
+                <Text style={styles.label}>Room</Text>
+                <View style={styles.iconInputContainer}>
+                  <FontAwesome name="bed" size={17} />
+                  <Picker
+                    selectedValue={room}
+                    style={styles.picker}
+                    onValueChange={(itemValue) => setRoom(itemValue)}
+                  >
+                    <Picker.Item label="1" value={1} />
+                    <Picker.Item label="2" value={2} />
+                    <Picker.Item label="3" value={3} />
+                    <Picker.Item label="4" value={4} />
+                  </Picker>
+                </View>
+              </View>
+            </View>
+
+
+            {/* Các input khác: check-in, check-out, số khách, giá */}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity onPress={handleReset} style={styles.resetButton}>
+                <Text style={styles.resetButtonText}>Reset</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleApply} style={styles.applyButton}>
+                <Text style={styles.applyButtonText}>Apply</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-    )
+      </Modal>
+    </View>
+  )
 }
 
 export default BookingRoom
 
 const styles = StyleSheet.create({
-    modalOverlay: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "rgba(0,0,0,0.5)",
-      },
-      modalContent: {
-        width: "90%",
-        padding: 20,
-        backgroundColor: "#fff",
-        borderRadius: 10,
-        alignItems: "center",
-      },
-      titleModal: {
-        color: COLORS.black,
-        marginBottom: 20,
-        textAlign: "center",
-        fontSize: 26,
-        fontWeight: 'bold'
-      },
-    
-      input: {
-        width: "100%",
-        padding: 10,
-        borderWidth: 1,
-        borderColor: "#ddd",
-        borderRadius: 8,
-        marginBottom: 10,
-      },
-      dateContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-      },
-      dateCheckIn: {
-        width: '50%'
-      },
-    
-      counterContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        width: "100%",
-        marginVertical: 10,
-        marginTop: 20,
-        marginBottom: 20,
-      },
-      counter: {
-        alignItems: "center",
-      },
-      counterLabel: {
-        marginBottom: 5,
-      },
-      counterControls: {
-        flexDirection: "row",
-        alignItems: "center",
-        // width:200,
-      },
-      textGuests: {
-        width: 30,
-        textAlign: 'center'
-    
-      },
-      counterButton: {
-        padding: 10,
-        backgroundColor: "#ddd",
-        borderRadius: 5,
-        marginHorizontal: 5,
-      },
-      counterButtonText: {
-        fontSize: 18,
-        fontWeight: "bold",
-      },
-      findButton: {
-        width: "100%",
-        padding: 15,
-        backgroundColor: "#4CAF50",
-        borderRadius: 8,
-        alignItems: "center",
-        marginVertical: 10,
-      },
-      findButtonText: {
-        color: "#fff",
-        fontWeight: "bold",
-      },
-      closeText: {
-        color: "#4CAF50",
-        marginTop: 10,
-      },
-      fill: {
-        borderBottomWidth: 1,
-        borderColor: COLORS.grey,
-        paddingVertical: windowHeight * 0.01,
-        color: COLORS.black,
-        // width:'50%'
-      },
-      contentText: {
-        color: COLORS.black,
-        fontSize: 20,
-      },
-      selectedRoom: {
-        width: 200,
-      }
+
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '90%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  label: {
+    fontSize: 16,
+    marginTop: 10,
+  },
+  iconInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 5,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 5,
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  rowItem: {
+    flex: 1,
+    marginRight: 5,
+  },
+  dateInput: {
+    marginLeft: 5,
+  },
+  picker: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 20,
+  },
+  resetButton: {
+    backgroundColor: '#ddd',
+    padding: 10,
+    borderRadius: 5,
+  },
+  resetButtonText: {
+    color: '#333',
+  },
+  applyButton: {
+    backgroundColor: '#13881A',
+    padding: 10,
+    borderRadius: 5,
+  },
+  applyButtonText: {
+    color: '#fff',
+  },
 })

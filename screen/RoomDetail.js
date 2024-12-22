@@ -13,7 +13,7 @@ import {
   ScrollView
 } from 'react-native'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import slideDetail from '../components/slideDetail';
 import SliderItem from '../components/SliderItem';
 
@@ -46,165 +46,99 @@ const amenitiesList = [
 const RoomDetail = ({ route, navigation }) => {
   const { hotelId } = route.params;
   const [images, setImages] = useState([]);
-  const [index, setIndex] = useState(0);
   const [filteredAmenities, setFilteredAmenities] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [minPrice, setMinPrice] = useState(null);
   const [maxPrice, setMaxPrice] = useState(null);
+  const [dataHotel, setDataHotel] = useState("");
+  const [roomHotel, setRoomHotel] = useState("");
 
-  
-  const [where, setWhere] = useState("");
- 
-
-  // const [slideDetail, setSlideDetail] = useState('')
-  const [dataHotel, setDataHotel] = useState('')
-  const [roomHotel, setRoomHotel] = useState('')
   const scrollX = useRef(new Animated.Value(0)).current;
-  const handleOnScroll = event => {
-    Animated.event(
-      [
-        {
-          nativeEvent: {
-            contentOffset:
-            {
-              x: scrollX,
-            },
-          },
-        }
-      ], {
-      useNativeDriver: false,
-    },
-    )(event);
-  };
-  const handleOnViewableItemsChanged = useRef(({ viewableItems }) => {
-    setIndex(viewableItems[0].index);
-  }
-  ).current;
 
+  const fetchData = useCallback(async () => {
+    try {
+      const [resHotel, resRoom] = await Promise.all([
+        axios.get(`${API_URL}${API_URL_HOTEL}${hotelId}`),
+        axios.get(`${API_URL}${API_URL_ROOM}search/${hotelId}`),
+      ]);
 
+      const hotelData = resHotel.data;
+      const roomData = resRoom.data;
 
-  const BackHome = () => {
-    console.log("Back")
-    navigation.navigate("Home")
-  }
+      setDataHotel(hotelData);
+      setRoomHotel(roomData);
 
- 
+      const amenitiesFromDb = hotelData.amenities.split(",").map((amenity) => amenity.trim());
+      const filtered = amenitiesList.filter((item) => amenitiesFromDb.includes(item.label));
+      setFilteredAmenities(filtered);
+
+      const roomImages = roomData.flatMap((room) => room.roomImages || []);
+      const combinedImages = [hotelData.imageUrl, ...roomImages].filter(
+        (img) => img && typeof img === "string" && img.startsWith("http")
+      );
+      setImages(combinedImages);
+
+      const prices = roomData.map((room) => room.price_per_night);
+      setMinPrice(Math.min(...prices));
+      setMaxPrice(Math.max(...prices));
+    } catch (error) {
+      console.error(error);
+    }
+  }, [hotelId]);
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-       
-        const resHotel = await axios.get(API_URL + API_URL_HOTEL + hotelId);
-        setDataHotel(resHotel.data);
-        const hotelImage = resHotel.data.imageUrl || "default_hotel_image_url";
-
-        
-        const amenitiesFromDb = resHotel.data.amenities
-          .split(',')
-          .map((amenity) => amenity.trim());
-
-        
-        const filtered = amenitiesList.filter((item) =>
-          amenitiesFromDb.includes(item.label)
-        );
-        setFilteredAmenities(filtered);
-
-        const resRoom = await axios.get(`${API_URL}${API_URL_ROOM}search/${hotelId}`);
-        const rooms = resRoom.data;
-        setRoomHotel(rooms);
-        const roomImages = resRoom.data
-          .map((room) => room.roomImages || [])
-          .flat();
-
-
-        const combinedImages = [hotelImage, ...roomImages]
-          .filter((img) => img && typeof img === "string" && img.startsWith("http"));
-
-
-
-
-       
-        setImages(combinedImages);
-
-        
-        const prices = rooms.map((room) => room.price_per_night);
-
-        if (prices.length === 1) {
-          
-          setMinPrice(prices[0]);
-          setMaxPrice(null); 
-        } else if (Math.min(...prices) === Math.max(...prices)) {
-         
-          setMinPrice(Math.min(...prices));
-          setMaxPrice(null); 
-        } else {
-          
-          setMinPrice(Math.min(...prices));
-          setMaxPrice(Math.max(...prices));
-        }
-        
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
     fetchData();
-  }, []);
+  }, [fetchData]);
+
+  const BackHome = useCallback(() => {
+    navigation.navigate("Home");
+  }, [navigation]);
 
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Pressable style={styles.backIconContainer} onPress={() => BackHome()}>
-          <Image source={require('../img/back.png')} style={styles.Img_back} />
+        <Pressable style={styles.backIconContainer} onPress={BackHome}>
+          <Image source={require("../img/back.png")} style={styles.Img_back} />
         </Pressable>
-
         <Pressable style={styles.heartIconContainer} onPress={() => navigation.navigate("Profile")}>
-          <Image source={require('../img/heart_red.png')} style={styles.Img_heart} />
+          <Image source={require("../img/heart_red.png")} style={styles.Img_heart} />
         </Pressable>
       </View>
 
       <View style={styles.flatListContainer}>
         <FlatList
           data={images}
-          renderItem={({ item }) => <SliderItem item={item} hotelId={hotelId} />}
+          renderItem={({ item }) => <SliderItem item={item} />}
+          keyExtractor={(item, index) => `${item}-${index}`}
           horizontal
           pagingEnabled
-          snapToAlignment="center"
-          showsHorizontalScrollIndicator={false}
-          onScroll={handleOnScroll}
-          onViewableItemsChanged={handleOnViewableItemsChanged}
-          style={styles.FlatList}
-          keyExtractor={(item, index) => `${item}-${index}`}
+          initialNumToRender={3}
+          windowSize={5}
         />
-
-
-        <Pagination data={slideDetail} scrollX={scrollX} index={index} />
+        <Pagination data={images} scrollX={scrollX} />
       </View>
 
       <ScrollView style={styles.content}>
         <View style={styles.title}>
           <Text style={styles.nameHotel}>{dataHotel.nameHotel}</Text>
           <Text style={styles.location}>
-            <Ionicons name='location-outline' size={18} />
+            <Ionicons name="location-outline" size={18} />
             {dataHotel.address}
           </Text>
         </View>
+
         <View style={styles.description}>
           <Text style={styles.detail}>Details</Text>
           <Text style={styles.contentDetails}>{dataHotel.description}</Text>
-
         </View>
+
         <Text style={styles.detail}>Amenities</Text>
         <View style={styles.amenitiesContainer}>
-
-          {/* Amenities List */}
           {filteredAmenities.length > 0 ? (
             <View style={styles.amenitiesList}>
               {filteredAmenities.map((amenity) => (
-                <View
-                  key={amenity.id}
-                  style={[styles.amenityItem, { backgroundColor: amenity.color }]}
-                >
+                <View key={amenity.id} style={[styles.amenityItem, { backgroundColor: amenity.color }]}>
                   <Ionicons name={amenity.icon} size={24} color="#333" />
                   <Text style={styles.label}>{amenity.label}</Text>
                 </View>
@@ -215,27 +149,22 @@ const RoomDetail = ({ route, navigation }) => {
           )}
         </View>
       </ScrollView>
+
       <View style={styles.buttonBooking}>
         <View style={styles.priceContainer}>
           <Text style={styles.price}>
-            {minPrice !== null 
-              ? maxPrice === null 
-                ? `${minPrice}$`
-                : `${minPrice}-${maxPrice}$` 
-              : 'Đang tải...'}
+            {minPrice !== null ? `${minPrice} - ${maxPrice}$` : "Loading..."}
           </Text>
           <Text style={styles.perNight}>/ night</Text>
         </View>
-
         <Pressable style={styles.button} onPress={() => setModalVisible(true)}>
           <Text style={styles.buttonText}>Select Rooms</Text>
         </Pressable>
         <BookingRoom modalVisible={modalVisible} setModalVisible={setModalVisible} />
-        
       </View>
     </View>
-  )
-}
+  );
+};
 
 export default RoomDetail
 
@@ -401,5 +330,5 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
 
   },
-  
+
 })
