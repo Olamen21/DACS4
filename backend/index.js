@@ -8,6 +8,7 @@ const userRouter = require('./routes/user');
 const hotelRouter = require('./routes/hotel');
 const roomRouter = require('./routes/room')
 const cityRouter = require('./routes/city')
+const bookingRouter = require('./routes/booking')
 
 const port = 8080;
 
@@ -31,6 +32,8 @@ app.use('/api/user', userRouter);
 app.use('/api/hotel', hotelRouter);
 app.use('/api/room', roomRouter)
 app.use('/api/city', cityRouter)
+app.use('/api/booking', bookingRouter)
+
 
 app.listen(process.env.PORT || port, () => 
   console.log(`Example app listening on port ${process.env.PORT || port}!`)
