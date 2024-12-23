@@ -104,7 +104,7 @@ def find_hotels_by_location(city_name, db):
 
     city = cities_collection.find_one({"name": city_name})
     if not city:
-        return f"Không có khách sạn nào tại '{city_name}'."
+        return f"Không có nơi'{city_name}' này. Xin vui lòng cung cấp địa điểm khác."
 
     hotels = hotels_collection.find({"id_city": city["_id"]})
     return [
@@ -139,7 +139,7 @@ def find_available_rooms(hotel_name, db):
 #Hỏi giá phòng    
 def find_room_price(hotel_name,room_type, db):
     hotels_collection = db["hotels"]
-    rooms_collection    = db["rooms"]
+    rooms_collection  = db["rooms"]
    
     hotel = hotels_collection.find_one({"nameHotel": hotel_name})
     if not hotel:
@@ -153,19 +153,53 @@ def find_room_price(hotel_name,room_type, db):
         return f"Giá phòng loại '{room_type}' tại khách sạn {hotel_name} hiện không có sẵn."
 
     return f"Giá phòng {room_type} tại khách sạn {hotel_name} là {price} $/đêm."
+
+#Hỏi dịch vụ của khách sạn
+def find_amenities(hotel_name, db):
+    hotels_collection = db["hotels"]
+    hotel = hotels_collection.find_one({"nameHotel": hotel_name})
+    if not hotel:
+        return f"Không tìm thấy khách sạn '{hotel_name}'."
+    animaties = hotel.get("amenities")
+    if not animaties:
+        return f"Hiện khách sạn {hotel_name} không có dịch vụ được cập nhật."
+    if isinstance(animaties, list):
+        animaties_str = ", ".join(animaties)
+    else:
+        animaties_str = str(animaties)
+    return f"Khách sạn {hotel_name} có các dịch vụ: {animaties_str}"
+
+#Hỏi loại phòng
+def find_room_type(hotel_name, db):
+    hotels_collection = db["hotels"]
+    hotel = hotels_collection.find_one({"nameHotel": hotel_name})
+    rooms_collection  = db["rooms"]
+    if not hotel:
+        return f"Không tìm thấy khách sạn '{hotel_name}'."
+    rooms = rooms_collection.find({"id_hotel": hotel["_id"]})
+    room_types = set()
+    for room in rooms:
+        if "room_type" in room:
+            room_types.add(room["room_type"])
+    if not room_types:
+        return f"Hiện khách sạn {hotel_name} không có phòng nào được cập nhật."
+    room_types_str = ", ".join(sorted(room_types))
+    return f"Khách sạn {hotel_name} có các loại phòng: {room_types_str}."
     
 
 def get_response(intents_list, intents_json, message, db):
     tag = intents_list[0]['intent']
     list_of_intents = intents_json['intents']
     responses = []
+    hotel_name = extract_hotel_name(message,db)
+    location = extract_city_name(message, db)
+    room_type = extract_room_type(message,db)
     
     for i in list_of_intents:
         if i['tag'] == tag:
             print("Intent Tag:", tag)
             if tag == "dia_diem":
                 # Tìm khách sạn theo địa điểm
-                location = extract_city_name(message, db)
                 if location:
                     hotels = find_hotels_by_location(location, db)
                     if hotels:
@@ -176,11 +210,9 @@ def get_response(intents_list, intents_json, message, db):
                     else:
                         responses = [f"Không có khách sạn nào tại {location}."]
                 else:
-                    responses = ["Xin vui lòng cung cấp địa điểm bạn muốn tìm kiếm."]
+                    responses = [f"Nơi bạn muốn tìm kiếm chưa được cập nhật."]
             elif tag == "kiem_tra_phong_trong":
                 # Kiểm tra phòng trống
-                hotel_name = extract_hotel_name(message, db)
-                
                 if hotel_name:
                     rooms = find_available_rooms(hotel_name, db)
                     if isinstance(rooms, str):  
@@ -195,13 +227,23 @@ def get_response(intents_list, intents_json, message, db):
                 else:
                     responses = ["Xin vui lòng cung cấp tên khách sạn bạn muốn kiểm tra."]
             elif tag == "hoi_gia":
-                hotel_name = extract_hotel_name(message,db)
-                room_type = extract_room_type(message,db)
                 if hotel_name and room_type:
                     price = find_room_price(hotel_name,room_type,db)
                     responses = [price]
                 else: 
                     responses = ["Xin vui lòng cung cấp loại phòng và tên khách sạn mà bạn muốn kiểm tra."]
+            elif tag == "dich_vu_khach_san":
+                if hotel_name:
+                    animaties = find_amenities(hotel_name, db)
+                    responses = [animaties]
+                else:
+                    responses = ["Xin vui lòng cung cấp tên khách sạn mà bạn muốn kiểm tra."]
+            elif tag == "hoi_loai_phong":
+                if hotel_name:
+                    room_types = find_room_type(hotel_name,db)
+                    responses = [room_types]
+                else:
+                    responses = ["Xin vui lòng cung cấp tên khách sạn mà bạn muốn kiểm tra."] 
             else:
                 # Phản hồi mặc định từ intents.json
                 responses = random.choice(i['responses'])
