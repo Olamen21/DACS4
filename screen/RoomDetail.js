@@ -53,6 +53,7 @@ const RoomDetail = ({ route, navigation }) => {
   const [dataHotel, setDataHotel] = useState("");
   const [roomHotel, setRoomHotel] = useState("");
 
+
   const scrollX = useRef(new Animated.Value(0)).current;
 
   const fetchData = useCallback(async () => {
@@ -65,26 +66,40 @@ const RoomDetail = ({ route, navigation }) => {
       const hotelData = resHotel.data;
       const roomData = resRoom.data;
 
-      setDataHotel(hotelData);
-      setRoomHotel(roomData);
+      // Only update state if data has changed
+      if (hotelData !== dataHotel) {
+        setDataHotel(hotelData);
+      }
+
+      if (roomData !== roomHotel) {
+        setRoomHotel(roomData);
+      }
 
       const amenitiesFromDb = hotelData.amenities.split(",").map((amenity) => amenity.trim());
       const filtered = amenitiesList.filter((item) => amenitiesFromDb.includes(item.label));
-      setFilteredAmenities(filtered);
+      if (filtered !== filteredAmenities) {
+        setFilteredAmenities(filtered);
+      }
 
       const roomImages = roomData.flatMap((room) => room.roomImages || []);
       const combinedImages = [hotelData.imageUrl, ...roomImages].filter(
         (img) => img && typeof img === "string" && img.startsWith("http")
       );
-      setImages(combinedImages);
+      if (combinedImages !== images) {
+        setImages(combinedImages);
+      }
 
       const prices = roomData.map((room) => room.price_per_night);
-      setMinPrice(Math.min(...prices));
-      setMaxPrice(Math.max(...prices));
+      if (minPrice !== Math.min(...prices)) {
+        setMinPrice(Math.min(...prices));
+      }
+      if (maxPrice !== Math.max(...prices)) {
+        setMaxPrice(Math.max(...prices));
+      }
     } catch (error) {
       console.error(error);
     }
-  }, [hotelId]);
+  }, [hotelId, dataHotel, roomHotel, filteredAmenities, images, minPrice, maxPrice]);
 
   useEffect(() => {
     fetchData();
@@ -93,7 +108,6 @@ const RoomDetail = ({ route, navigation }) => {
   const BackHome = useCallback(() => {
     navigation.navigate("Home");
   }, [navigation]);
-
 
   return (
     <View style={styles.container}>
@@ -153,14 +167,28 @@ const RoomDetail = ({ route, navigation }) => {
       <View style={styles.buttonBooking}>
         <View style={styles.priceContainer}>
           <Text style={styles.price}>
-            {minPrice !== null ? `${minPrice} - ${maxPrice}$` : "Loading..."}
+            {minPrice !== null && maxPrice !== null
+              ? minPrice === maxPrice || maxPrice === null
+                ? `${minPrice}$`
+                : `${minPrice}-${maxPrice}$`
+              : 'Đang tải...'}
+
           </Text>
           <Text style={styles.perNight}>/ night</Text>
         </View>
-        <Pressable style={styles.button} onPress={() => setModalVisible(true)}>
+        <Pressable style={styles.button} onPress={() => navigation.navigate('ModalBooking')}>
           <Text style={styles.buttonText}>Select Rooms</Text>
         </Pressable>
-        <BookingRoom modalVisible={modalVisible} setModalVisible={setModalVisible} />
+{/* 
+        {modalVisible && (
+          <BookingRoom modalVisible={modalVisible} setModalVisible={setModalVisible} navigation={navigation} />
+        )} */}
+
+        {/* <Pressable style={styles.button} onPress={() => setModalVisible(true)}>
+          <Text style={styles.buttonText}>Select Rooms</Text>
+        </Pressable>
+        <BookingRoomMemo modalVisible={modalVisible} setModalVisible={setModalVisible} /> */}
+
       </View>
     </View>
   );
@@ -328,7 +356,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
-
   },
 
 })

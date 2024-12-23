@@ -19,7 +19,7 @@ import { Picker } from '@react-native-picker/picker';
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
-const BookingRoom = ({ modalVisible, setModalVisible }) => {
+const BookingRoom = ({ modalVisible, setModalVisible, navigation }) => {
 
   // const [isFilterVisible, setFilterVisible] = React.useState(false);
   const [checkInDate, setCheckInDate] = useState(new Date(2024, 11, 12));
@@ -28,20 +28,27 @@ const BookingRoom = ({ modalVisible, setModalVisible }) => {
   const [room, setRoom] = useState(1);
   const [showCheckInPicker, setShowCheckInPicker] = useState(false);
   const [showCheckOutPicker, setShowCheckOutPicker] = useState(false);
+  const [date, setDate] = useState(new Date())
+  const dateBooking = new Date()
 
-  const handleReset = () => {
-
-    setCheckInDate(new Date(2024, 11, 12));
-    setCheckOutDate(new Date(2024, 11, 14));
-    setGuest(2);
-    setRoom(1);
+  const handleClose = () => {
+    setModalVisible(false)
 
   };
 
   const handleApply = () => {
     // Xử lý logic khi người dùng nhấn nút "Apply"
-    console.log('Filters Applied');
-    setModalVisible(false)
+    console.log(checkInDate)
+    console.log(checkOutDate)
+    console.log(guest)
+    // navigation.navigate('BookingHotel', {
+    //   hotelId: hotelId,
+    //   roomId: roomId,
+    //   checkIn: checkIn,
+    //   checkOut: checkOut,
+    //   dateBooking: dateBooking,
+    // });
+    
   };
 
   return (
@@ -141,8 +148,8 @@ const BookingRoom = ({ modalVisible, setModalVisible }) => {
 
             {/* Các input khác: check-in, check-out, số khách, giá */}
             <View style={styles.buttonContainer}>
-              <TouchableOpacity onPress={handleReset} style={styles.resetButton}>
-                <Text style={styles.resetButtonText}>Reset</Text>
+              <TouchableOpacity onPress={handleClose} style={styles.resetButton}>
+                <Text style={styles.resetButtonText}>Close</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleApply} style={styles.applyButton}>
                 <Text style={styles.applyButtonText}>Apply</Text>

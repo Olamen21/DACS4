@@ -14,6 +14,6 @@ export {default as ChatBot                  }                   from './ChatBot'
 export {default as FindSearchScreen         }                   from './FindSearchScreen'   ;
 export {default as BookingHotel        }                   from './BookingHotel'   ;
 export {default as HotelInCity        }                   from './HotelInCity'   ;
-// export {default as RoomDetail        }                   from './RoomDetail'   ;
+export {default as ModalBooking        }                   from './ModalBooking'   ;
 
 

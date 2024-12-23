@@ -16,6 +16,7 @@ import {
   RoomDetail,
   BookingHotel,
   HotelInCity,
+  ModalBooking,
 } from '../screen';
 
 const Tab = createBottomTabNavigator();
@@ -57,6 +58,11 @@ const AppStack = () => {
         <Stack.Screen
         name="HotelInCity"
         component={HotelInCity}
+        options={{ headerShown: false }} // Hiện header cho EditProfile
+      />
+       <Stack.Screen
+        name="ModalBooking"
+        component={ModalBooking}
         options={{ headerShown: false }} // Hiện header cho EditProfile
       />
     </Stack.Navigator>
