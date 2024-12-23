@@ -9,6 +9,7 @@ from pyvi import ViTokenizer
 from pymongo import MongoClient
 from dotenv import load_dotenv
 from tensorflow.keras.models import load_model
+from datetime import datetime
 
 # Khởi tạo
 lemmatizer = WordNetLemmatizer()
@@ -84,14 +85,18 @@ def extract_hotel_name(message, db):
 
     return None
 
-#Lấy số lượng người
-def extract_number_of_people(message):
-    match = re.search(r'(\d+)\s*(người|người lớn|trẻ em|khách)', message, re.IGNORECASE)
+def extract_room_type(message,db):
+    rooms_collection = db['rooms']
+    room_types = []
     
-    if match: 
-        return int(match.group(1))
-    else: 
-        return None
+    for room in rooms_collection.find():
+        if 'room_type' in room:
+            room_types.append(room['room_type'])
+            
+    for room_type in room_types:
+        if room_type.lower() in message.lower():
+            return room_type
+    return None
 
 def find_hotels_by_location(city_name, db):
     cities_collection = db["cities"]
@@ -120,6 +125,8 @@ def find_available_rooms(hotel_name, db):
         return f"Không tìm thấy khách sạn '{hotel_name}'."
 
     rooms = rooms_collection.find({"id_hotel": hotel["_id"], "availability": True})
+    if not rooms: 
+        return f"Hiện không có phòng trống tại khách sạn {hotel_name}."
     return [
         {
             "room_number"       : room.get("room_number", "N/A"),
@@ -127,8 +134,26 @@ def find_available_rooms(hotel_name, db):
             "price_per_night"   : room.get("price_per_night", "N/A")
         }
         for room in rooms
-    ] or f"Không còn phòng trống tại {hotel_name}."
+    ]
 
+#Hỏi giá phòng    
+def find_room_price(hotel_name,room_type, db):
+    hotels_collection = db["hotels"]
+    rooms_collection    = db["rooms"]
+   
+    hotel = hotels_collection.find_one({"nameHotel": hotel_name})
+    if not hotel:
+        return f"Không tìm thấy khách sạn '{hotel_name}'."
+    room = rooms_collection.find_one({"id_hotel": hotel["_id"], "room_type": room_type})
+    if not room:
+        return f"Không tìm thấy phòng loại '{room_type}' tại khách sạn {hotel_name}."
+    
+    price = room.get("price_per_night")
+    if not price:
+        return f"Giá phòng loại '{room_type}' tại khách sạn {hotel_name} hiện không có sẵn."
+
+    return f"Giá phòng {room_type} tại khách sạn {hotel_name} là {price} $/đêm."
+    
 
 def get_response(intents_list, intents_json, message, db):
     tag = intents_list[0]['intent']
@@ -137,6 +162,7 @@ def get_response(intents_list, intents_json, message, db):
     
     for i in list_of_intents:
         if i['tag'] == tag:
+            print("Intent Tag:", tag)
             if tag == "dia_diem":
                 # Tìm khách sạn theo địa điểm
                 location = extract_city_name(message, db)
@@ -154,12 +180,13 @@ def get_response(intents_list, intents_json, message, db):
             elif tag == "kiem_tra_phong_trong":
                 # Kiểm tra phòng trống
                 hotel_name = extract_hotel_name(message, db)
-                number_of_people = extract_number_of_people(message)
                 
                 if hotel_name:
                     rooms = find_available_rooms(hotel_name, db)
                     if isinstance(rooms, str):  
                         response = rooms
+                    elif not rooms:
+                        responses = [f"Hiện không có phòng trống tại khách sạn {hotel_name}."]
                     else:
                         responses.append(f"Các phòng trống tại {hotel_name}:")
                         for index, room in enumerate(rooms, start=1):
@@ -167,6 +194,14 @@ def get_response(intents_list, intents_json, message, db):
                             responses.append(response)
                 else:
                     responses = ["Xin vui lòng cung cấp tên khách sạn bạn muốn kiểm tra."]
+            elif tag == "hoi_gia":
+                hotel_name = extract_hotel_name(message,db)
+                room_type = extract_room_type(message,db)
+                if hotel_name and room_type:
+                    price = find_room_price(hotel_name,room_type,db)
+                    responses = [price]
+                else: 
+                    responses = ["Xin vui lòng cung cấp loại phòng và tên khách sạn mà bạn muốn kiểm tra."]
             else:
                 # Phản hồi mặc định từ intents.json
                 responses = random.choice(i['responses'])

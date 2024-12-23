@@ -20,7 +20,7 @@ const ChatBot = () => {
   useEffect(() => {
     const fetchWelcomeMessage = async () => {
       try {
-        const response = await fetch('http://192.168.100.21:5000/chatbot/init', {
+        const response = await fetch('http://192.168.88.166:5000/chatbot/init', {
           method: 'GET',
         });
         if (!response.ok) {
@@ -43,7 +43,7 @@ const ChatBot = () => {
     setInput('');
 
     try {
-      const response = await fetch('http://192.168.100.21:5000/chatbot', {
+      const response = await fetch('http://192.168.88.166:5000/chatbot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input }),
