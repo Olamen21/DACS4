@@ -11,19 +11,9 @@
       "responses": ["Rất tuyệt! Bạn muốn đặt phòng tại {location}. Vui lòng cung cấp ngày check-in để tôi kiểm tra phòng trống."]
     },
     {
-      "tag": "dat_phong",
-      "patterns": ["Tôi muốn đặt phòng", "Đặt phòng giúp tôi", "Tôi cần đặt một phòng khách sạn"],
-      "responses": ["Chắc chắn rồi! Bạn vui lòng cung cấp thông tin chi tiết như ngày check-in, check-out và loại phòng nhé."]
-    },
-    {
       "tag": "kiem_tra_phong_trong",
       "patterns": ["Khách sạn có phòng trống không?", "Có phòng nào ở Hà Nội không?", "Phòng trống tại Đà Nẵng?"],
       "responses": ["Vâng, tôi sẽ kiểm tra phòng trống tại {location}. Bạn có thể cung cấp ngày muốn đặt không?"]
-    },
-    {
-      "tag": "huy_dat_phong",
-      "patterns": ["Hủy đặt phòng", "Tôi muốn hủy phòng", "Làm sao để hủy đặt phòng?"],
-      "responses": ["Được rồi! Bạn vui lòng cung cấp mã đặt phòng để tôi hỗ trợ hủy nhé."]
     },
     {
       "tag": "dich_vu_khach_san",
@@ -32,8 +22,13 @@
     },
     {
       "tag": "hoi_gia",
-      "patterns": ["Giá phòng là bao nhiêu?", "Cho tôi biết giá phòng", "Phòng đôi giá bao nhiêu?"],
-      "responses": ["Giá phòng phụ thuộc vào loại phòng và thời gian bạn đặt. Vui lòng cho biết thông tin chi tiết để tôi kiểm tra giá giúp bạn."]
+      "patterns": [ "Giá phòng Suite là bao nhiêu?","Cho tôi hỏi giá phòng tại khách sạn Merry Land Hotel","Giá phòng Standard là bao nhiêu tại khách sạn ABC?"],
+      "responses": ["Giá phòng phụ thuộc vào loại phòng. Vui lòng cho biết thông tin chi tiết để tôi kiểm tra giá giúp bạn."]
+    },
+    {
+      "tag": "hoi_loai_phong",
+      "patterns": ["Khách sạn có những loại phòng nào?","Các loại phòng tại đây là gì?","Cho tôi biết về các loại phòng?","Có phòng đơn không?","Phòng đôi có không?","Khách sạn có phòng gia đình không?","Các loại phòng hiện có là gì?"],
+      "responses": ["Khách sạn chúng tôi có các loại phòng: Phòng đơn, Phòng đôi, Phòng gia đình và Phòng suite. Bạn muốn biết thêm chi tiết về loại nào?","Chúng tôi cung cấp các loại phòng: Phòng đơn, Phòng đôi, và Phòng suite. Bạn muốn tìm hiểu thêm về loại phòng nào?","Hiện tại, khách sạn có các loại phòng như sau: Phòng đơn, Phòng đôi, Phòng gia đình. Bạn quan tâm đến loại phòng nào?"]
     }
   ]
 }
