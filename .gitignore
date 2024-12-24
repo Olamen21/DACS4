@@ -84,3 +84,4 @@ __pycache__/
 
 # Các file có dung lượng lớn
 chatbot/.venv/Lib/site-packages/tensorflow/python/_pywrap_tensorflow_internal.pyd
+.env

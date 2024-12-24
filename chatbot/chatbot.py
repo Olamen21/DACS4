@@ -26,6 +26,11 @@ def connect_db():
     try:
         client = MongoClient(MONGO_URI)
         db = client["DACS4"]
+        
+        db.cities.create_index("name", unique=True)
+        db.hotels.create_index("nameHotel")
+        db.rooms.create_index([("id_hotel", 1), ("room_type", 1)])
+        
         return db
     except Exception as e:
         print("Kết nối thất bại:", e)
@@ -106,15 +111,15 @@ def find_hotels_by_location(city_name, db):
     if not city:
         return f"Không có nơi'{city_name}' này. Xin vui lòng cung cấp địa điểm khác."
 
-    hotels = hotels_collection.find({"id_city": city["_id"]})
+    hotels = hotels_collection.find({"id_city": city["_id"]}, {"nameHotel": 1, "address": 1, "contactNumber": 1})
+    hotel_list = list(hotels)
+    if not hotel_list:
+        return f"Không có khách sạn nào tại '{city_name}'."
+    
     return [
-        {
-            "nameHotel"         : hotel.get("nameHotel", "N/A"),
-            "address"           : hotel.get("address", "N/A"),
-            "contactNumber"     : hotel.get("contactNumber", "N/A")
-        }
-        for hotel in hotels
-    ] or f"Không có khách sạn nào tại '{city_name}'."
+        f"{idx+1}. {hotel['nameHotel']} (Địa chỉ: {hotel.get('address', 'N/A')}). Liên hệ: {hotel.get('contactNumber', 'N/A')}."
+        for idx, hotel in enumerate(hotel_list)
+    ]
 
 def find_available_rooms(hotel_name, db):
     hotels_collection   = db["hotels"]
@@ -124,16 +129,15 @@ def find_available_rooms(hotel_name, db):
     if not hotel:
         return f"Không tìm thấy khách sạn '{hotel_name}'."
 
-    rooms = rooms_collection.find({"id_hotel": hotel["_id"], "availability": True})
-    if not rooms: 
-        return f"Hiện không có phòng trống tại khách sạn {hotel_name}."
+    rooms = rooms_collection.find({"id_hotel": hotel["_id"], "availability": True}, {"room_number": 1, "room_type": 1, "price_per_night": 1})
+    room_list = list(rooms)
+
+    if not room_list:
+        return f"Hiện không có phòng trống tại khách sạn '{hotel_name}'."
+
     return [
-        {
-            "room_number"       : room.get("room_number", "N/A"),
-            "room_type"         : room.get("room_type", "N/A"),
-            "price_per_night"   : room.get("price_per_night", "N/A")
-        }
-        for room in rooms
+        f"{idx+1}. Phòng {room['room_number']} ({room['room_type']}): {room['price_per_night']} $/đêm."
+        for idx, room in enumerate(room_list)
     ]
 
 #Hỏi giá phòng    
@@ -192,7 +196,6 @@ def get_response(intents_list, intents_json, message, db):
     list_of_intents = intents_json['intents']
     responses = []
     hotel_name = extract_hotel_name(message,db)
-    location = extract_city_name(message, db)
     room_type = extract_room_type(message,db)
     
     for i in list_of_intents:
@@ -200,32 +203,15 @@ def get_response(intents_list, intents_json, message, db):
             print("Intent Tag:", tag)
             if tag == "dia_diem":
                 # Tìm khách sạn theo địa điểm
-                if location:
-                    hotels = find_hotels_by_location(location, db)
-                    if hotels:
-                        responses.append(f"Tôi đã tìm thấy các khách sạn tại {location}:")
-                        for idx, hotel in enumerate(hotels, start=1):
-                            response = f"{idx}. {hotel['nameHotel']} (Địa chỉ: {hotel['address']}). Liên hệ: {hotel['contactNumber']}."
-                            responses.append(response)
-                    else:
-                        responses = [f"Không có khách sạn nào tại {location}."]
-                else:
-                    responses = [f"Nơi bạn muốn tìm kiếm chưa được cập nhật."]
+                city_name = extract_city_name(message, db)
+                if city_name:
+                    return find_hotels_by_location(city_name, db)
+                return ["Vui lòng cung cấp địa điểm bạn muốn tìm kiếm."]
             elif tag == "kiem_tra_phong_trong":
                 # Kiểm tra phòng trống
                 if hotel_name:
-                    rooms = find_available_rooms(hotel_name, db)
-                    if isinstance(rooms, str):  
-                        response = rooms
-                    elif not rooms:
-                        responses = [f"Hiện không có phòng trống tại khách sạn {hotel_name}."]
-                    else:
-                        responses.append(f"Các phòng trống tại {hotel_name}:")
-                        for index, room in enumerate(rooms, start=1):
-                            response = f"{index}. {room['room_type']}: {room['room_number']}. Giá: {room['price_per_night']} $."
-                            responses.append(response)
-                else:
-                    responses = ["Xin vui lòng cung cấp tên khách sạn bạn muốn kiểm tra."]
+                    return find_available_rooms(hotel_name, db)
+                return ["Vui lòng cung cấp tên khách sạn."]
             elif tag == "hoi_gia":
                 if hotel_name and room_type:
                     price = find_room_price(hotel_name,room_type,db)
