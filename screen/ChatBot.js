@@ -10,17 +10,33 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { CHATBOT_SERVER_URL } from '@env';
+import NetInfo from '@react-native-community/netinfo';
+
 
 const ChatBot = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      if (!state.isConnected) {
+        setError('Không có kết nối mạng');
+      } else {
+        setError('');
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Tự động gửi lời chào khi mở màn hình
   useEffect(() => {
     const fetchWelcomeMessage = async () => {
       try {
-        const response = await fetch('http://192.168.88.166:5000/chatbot/init', {
+        const response = await fetch(`${CHATBOT_SERVER_URL}/chatbot/init`, {
           method: 'GET',
         });
         if (!response.ok) {
@@ -37,39 +53,39 @@ const ChatBot = () => {
 
   const sendMessage = async () => {
     if (input.trim() === '') return;
-
-    const newMessages = [...messages, { text: input, isUser: true }];
+    setLoading(true);
+    const newMessages = [
+      ...messages,
+      { id: Date.now().toString(), text: input, isUser: true },
+    ];
     setMessages(newMessages);
     setInput('');
 
     try {
-      const response = await fetch('http://192.168.88.166:5000/chatbot', {
+      const response = await fetch(`${CHATBOT_SERVER_URL}/chatbot`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input }),
       });
       if (!response.ok) {
-        // Handle HTTP errors (e.g., 404, 500)
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`Lỗi máy chủ: ${response.status}`);
       }
       const data = await response.json();
-
-      //Kiểm tra nếu phản hồi là danh sách hoặc chuỗi
       const botMessages = Array.isArray(data.response)
-      ? data.response
-      : data.response;
-
-      //setMessages([...newMessages, ...botMessages]);
+        ? data.response
+        : [data.response];
       botMessages.forEach((msg, index) => {
         setTimeout(() => {
-          setMessages((prevMessages) => [
-            ...prevMessages, {text: msg, isUser: false},
+          setMessages((prev) => [
+            ...prev,
+            { id: Date.now().toString() + index, text: msg, isUser: false },
           ]);
         }, 1000 * index);
       });
-    } catch (error) {
-      console.error('Error sending message:', error);
-      // Optional: Show an error message in the UI if needed
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
