@@ -57,7 +57,7 @@ const EditRoom = () => {
       console.log(image)
       const formData = new FormData();
       formData.append('room_type', selectedRoom);
-      formData.append('price_per_night', price + "$");
+      formData.append('price_per_night', price);
       formData.append('capacity', capacity);
       formData.append('image', image);
 

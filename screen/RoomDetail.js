@@ -1,47 +1,12 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  FlatList,
-  Animated,
-  Modal,
-  TextInput,
-  Platform,
-  Pressable,
-  Image,
-  Dimensions,
-  ScrollView
-} from 'react-native'
-
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import slideDetail from '../components/slideDetail';
-import SliderItem from '../components/SliderItem';
-
-import Pagination from '../components/Pagination';
-import COLORS from '../style/Colors';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import Button from '../components/Button';
+import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { API_URL, API_URL_CITY, API_URL_HOTEL, API_URL_ROOM } from '@env';
 import axios from 'axios';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import COLORS from '../style/Colors';
+const { width } = Dimensions.get('window');
 import BookingRoom from '../components/BookingRoom';
-
-
-const windowWidth = Dimensions.get('window').width;
-const windowHeight = Dimensions.get('window').height;
-
-const amenitiesList = [
-  { id: 1, label: "Wi-Fi", icon: "wifi", color: "#d4f8c4" },
-  { id: 2, label: "Gym", icon: "barbell-outline", color: "#c4e8f8" },
-  { id: 3, label: "Restaurant", icon: "restaurant", color: "#f8ecc4" },
-  { id: 4, label: "Parking", icon: "car-outline", color: "#e4d4f8" },
-  { id: 5, label: "Swimming Pool", icon: "water-outline", color: "#c4f8f8" },
-];
-// const images = [
-//   require('../img/detail.jpg'),
-//   require('../img/detail1.jpg'),
-//   require('../img/detail2.jpg'),
-//   require('../img/detail3.jpg'),
-// ];
 
 const RoomDetail = ({ route, navigation }) => {
   const { hotelId } = route.params;
@@ -51,10 +16,23 @@ const RoomDetail = ({ route, navigation }) => {
   const [minPrice, setMinPrice] = useState(null);
   const [maxPrice, setMaxPrice] = useState(null);
   const [dataHotel, setDataHotel] = useState("");
-  const [roomHotel, setRoomHotel] = useState("");
+  const [roomHotel, setRoomHotel] = useState([]);
 
+  const amenitiesList = [
+    { id: 1, label: "Wi-Fi", icon: "wifi", color: "#d4f8c4" },
+    { id: 2, label: "Gym", icon: "barbell-outline", color: "#c4e8f8" },
+    { id: 3, label: "Restaurant", icon: "restaurant", color: "#f8ecc4" },
+    { id: 4, label: "Parking", icon: "car-outline", color: "#e4d4f8" },
+    { id: 5, label: "Swimming Pool", icon: "water-outline", color: "#c4f8f8" },
+  ];
 
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const handleScroll = (event) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    const currentIndex = Math.round(scrollPosition / width);
+    setActiveIndex(currentIndex);
+  };
 
   const fetchData = useCallback(async () => {
     try {
@@ -99,55 +77,67 @@ const RoomDetail = ({ route, navigation }) => {
     } catch (error) {
       console.error(error);
     }
-  }, [hotelId, dataHotel, roomHotel, filteredAmenities, images, minPrice, maxPrice]);
+  }, []);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const BackHome = useCallback(() => {
-    navigation.navigate("Home");
-  }, [navigation]);
-
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Pressable style={styles.backIconContainer} onPress={BackHome}>
-          <Image source={require("../img/back.png")} style={styles.Img_back} />
-        </Pressable>
-        <Pressable style={styles.heartIconContainer} onPress={() => navigation.navigate("Profile")}>
-          <Image source={require("../img/heart_red.png")} style={styles.Img_heart} />
-        </Pressable>
-      </View>
-
-      <View style={styles.flatListContainer}>
+      {/* Image Carousel */}
+      <View style={styles.imageContainer}>
         <FlatList
           data={images}
-          renderItem={({ item }) => <SliderItem item={item} />}
-          keyExtractor={(item, index) => `${item}-${index}`}
+          keyExtractor={(item, index) => index.toString()}
           horizontal
           pagingEnabled
-          initialNumToRender={3}
-          windowSize={5}
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleScroll}
+          renderItem={({ item }) => (
+            <Image source={{ uri: item }} style={styles.image} />
+          )}
         />
-        <Pagination data={images} scrollX={scrollX} />
+        {/* Dots Indicator */}
+        <View style={styles.dotsContainer}>
+          {images.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.dot,
+                activeIndex === index && styles.activeDot,
+              ]}
+            />
+          ))}
+        </View>
+
+        {/* Back and Favorite Buttons */}
+        <View style={styles.headerIcons}>
+          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Home')}>
+            <Icon name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton}>
+            <Icon name="heart-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <ScrollView style={styles.content}>
-        <View style={styles.title}>
-          <Text style={styles.nameHotel}>{dataHotel.nameHotel}</Text>
-          <Text style={styles.location}>
-            <Ionicons name="location-outline" size={18} />
-            {dataHotel.address}
-          </Text>
-        </View>
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+        {/* Hotel Details */}
+        <Text style={styles.hotelName}>{dataHotel.nameHotel}</Text>
+        {/* <Text style={styles.rating}>⭐ 4.5 (135 Reviews)</Text> */}
+        <Text style={styles.address}>
+          <Ionicons name="location-outline" size={18} />
+          {dataHotel.address}
+        </Text>
 
-        <View style={styles.description}>
-          <Text style={styles.detail}>Details</Text>
-          <Text style={styles.contentDetails}>{dataHotel.description}</Text>
-        </View>
+        <Text style={styles.sectionTitle}>Details</Text>
+        <Text style={styles.description}>
+          {dataHotel.description}
+        </Text>
 
-        <Text style={styles.detail}>Amenities</Text>
+        {/* Amenities */}
+        <Text style={styles.sectionTitle}>Amenities</Text>
         <View style={styles.amenitiesContainer}>
           {filteredAmenities.length > 0 ? (
             <View style={styles.amenitiesList}>
@@ -164,6 +154,7 @@ const RoomDetail = ({ route, navigation }) => {
         </View>
       </ScrollView>
 
+      {/* Footer */}
       <View style={styles.buttonBooking}>
         <View style={styles.priceContainer}>
           <Text style={styles.price}>
@@ -176,13 +167,18 @@ const RoomDetail = ({ route, navigation }) => {
           </Text>
           <Text style={styles.perNight}>/ night</Text>
         </View>
-        <Pressable style={styles.button} onPress={() => navigation.navigate('ModalBooking')}>
+        <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}>
           <Text style={styles.buttonText}>Select Rooms</Text>
-        </Pressable>
-{/* 
+        </TouchableOpacity>
+
         {modalVisible && (
-          <BookingRoom modalVisible={modalVisible} setModalVisible={setModalVisible} navigation={navigation} />
-        )} */}
+          <BookingRoom 
+          modalVisible={modalVisible} 
+          setModalVisible={setModalVisible} 
+          navigation={navigation}  
+          hotelId = {hotelId}
+          />
+        )} 
 
         {/* <Pressable style={styles.button} onPress={() => setModalVisible(true)}>
           <Text style={styles.buttonText}>Select Rooms</Text>
@@ -194,103 +190,58 @@ const RoomDetail = ({ route, navigation }) => {
   );
 };
 
-export default RoomDetail
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-  },
-  header: {
+  container: { flex: 1, backgroundColor: '#f7f7f7' },
+  imageContainer: { height: 200, position: 'relative' },
+  image: { width: width, height: '100%' },
+  dotsContainer: {
     position: 'absolute',
-    top: windowHeight * 0.02,
-    width: '100%',
-    zIndex: 1,
-  },
-  backIconContainer: {
-    position: 'absolute',
-    left: windowWidth * 0.04,
-    top: 0,
-    backgroundColor: 'rgba(242, 242, 242, 0.4)',
-    width: 50,
-    height: 50,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  heartIconContainer: {
-    position: 'absolute',
-    right: windowWidth * 0.04,
-    top: 0,
-    backgroundColor: 'rgba(242, 242, 242, 0.4)',
-    width: 50,
-    height: 50,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  Img_back: {
-    width: 22,
-    height: 22,
-    tintColor: COLORS.white,
-  },
-  Img_heart: {
-    width: 25,
-    height: 25,
-  },
-
-  flatListContainer: {
-    flex: 0.6,
+    bottom: 10,
     left: 0,
     right: 0,
-    top: -10,
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
-  FlatList: {
-    flex: 1,
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ccc',
+    marginHorizontal: 4,
   },
-  content: {
-    flex: 0.5,
-    paddingHorizontal: 10,
-    backgroundColor: COLORS.white,
-    marginBottom: 50,
+  activeDot: { backgroundColor: '#007BFF' },
+  headerIcons: { position: 'absolute', top: 10, left: 10, right: 10, flexDirection: 'row', justifyContent: 'space-between' },
+  iconButton: { padding: 10, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 50 },
+  contentContainer: { padding: 15 },
+  hotelName: { 
+    fontSize: 24, 
+    fontWeight: 'bold', 
+    color: '#333',
+    marginBottom:10,
   },
-  title: {
-    marginTop: 20,
-    marginBottom: 20,
+  rating: { fontSize: 14, color: '#888', marginVertical: 5 },
+  address: { 
+    fontSize: 14, 
+    color: '#555',
+    marginBottom:10,
   },
-  nameHotel: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: COLORS.black,
-
-  },
-  location: {
-    fontSize: 16,
-    marginTop: 10,
-  },
-  description: {
-    marginBottom: 20,
-    marginVertical: 10,
-    paddingHorizontal: 10,
-  },
-  detail: {
-    fontSize: 26,
+  sectionTitle: { 
+    fontSize: 24,
     fontWeight: 'bold',
     color: COLORS.black,
     marginBottom: 10,
-  },
-  contentDetails: {
-    fontSize: 16,
-  },
-  toggleText: {
-    color: '#007BFF',
-    fontSize: 14,
-    marginTop: 5,
-  },
+   },
+  description: {
+     fontSize: 14, 
+     color: '#666', 
+     lineHeight: 20,
+     marginBottom:10,
+    },
   amenitiesContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 10,
+    marginBottom:40,
   },
   amenityItem: {
     alignItems: "center",
@@ -298,7 +249,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 10,
-    marginHorizontal: 5,
+    marginHorizontal: 10,
   },
   amenitiesList: {
     flexDirection: "row",
@@ -357,5 +308,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+});
 
-})
+export default RoomDetail;

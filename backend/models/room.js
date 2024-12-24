@@ -15,7 +15,7 @@ const roomSchema = new mongoose.Schema({
     required: true,  
   },
   price_per_night: {
-    type: String,
+    type: Number,
     required: true,  
   },
   availability: {

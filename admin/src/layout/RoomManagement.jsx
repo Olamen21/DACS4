@@ -101,7 +101,7 @@ const RoomManagement = () => {
                   <td>{index + 1}</td>
                   <td>{room.room_number}</td>
                   <td>{room.room_type}</td>
-                  <td>{room.price_per_night}</td>
+                  <td>{room.price_per_night} $</td>
                   <td>{room.capacity}</td>
                   <td>
                     {room.availability ? (

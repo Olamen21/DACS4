@@ -12,44 +12,81 @@ import {
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { Picker } from '@react-native-picker/picker';
+import { API_URL, API_URL_CITY, API_URL_HOTEL, API_URL_ROOM } from '@env';
+import axios from 'axios';
 
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
-const BookingRoom = ({ modalVisible, setModalVisible, navigation }) => {
-
+const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => {
   // const [isFilterVisible, setFilterVisible] = React.useState(false);
   const [checkInDate, setCheckInDate] = useState(new Date(2024, 11, 12));
   const [checkOutDate, setCheckOutDate] = useState(new Date(2024, 11, 14));
-  const [guest, setGuest] = useState(2);
-  const [room, setRoom] = useState(1);
+  const [room, setRoom] = useState(null); // To store the selected room number
+  const [capacity, setCapacity] = useState('N/A');
+  const [price, setPrice] = useState('N/A')
   const [showCheckInPicker, setShowCheckInPicker] = useState(false);
   const [showCheckOutPicker, setShowCheckOutPicker] = useState(false);
+  const [dataHotel, setDataHotel] = useState('')
+  const [roomHotel, setRoomHotel] = useState([]);
   const [date, setDate] = useState(new Date())
   const dateBooking = new Date()
 
   const handleClose = () => {
     setModalVisible(false)
-
   };
 
   const handleApply = () => {
-    // Xử lý logic khi người dùng nhấn nút "Apply"
-    console.log(checkInDate)
-    console.log(checkOutDate)
-    console.log(guest)
-    // navigation.navigate('BookingHotel', {
-    //   hotelId: hotelId,
-    //   roomId: roomId,
-    //   checkIn: checkIn,
-    //   checkOut: checkOut,
-    //   dateBooking: dateBooking,
-    // });
-    
+
+    navigation.navigate('BookingHotel', {
+      hotelId: hotelId,
+      roomId: room,
+      checkIn: checkInDate.toISOString(),
+      checkOut: checkOutDate.toISOString(),
+      dateBooking: dateBooking.toISOString(),
+    });
+
   };
+  const handleRoomChange = (selectedRoom) => {
+    setRoom(selectedRoom);
+
+    const selectedRoomDetails = roomHotel.find(
+      (roomItem) => roomItem.room_number === selectedRoom
+    );
+
+    setCapacity(selectedRoomDetails?.capacity?.toString() || 'N/A');
+    setPrice(selectedRoomDetails?.price_per_night?.toString() || 'N/A')
+  };
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [resHotel, resRoom] = await Promise.all([
+        axios.get(`${API_URL}${API_URL_HOTEL}${hotelId}`),
+        axios.get(`${API_URL}${API_URL_ROOM}search/${hotelId}`),
+      ]);
+
+      const hotelData = resHotel.data;
+      const roomData = resRoom.data;
+
+      // Only update state if data has changed
+      if (hotelData !== dataHotel) {
+        setDataHotel(hotelData);
+      }
+
+      if (roomData !== roomHotel) {
+        setRoomHotel(roomData);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   return (
     <View>
@@ -108,25 +145,8 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation }) => {
                 </View>
               </View>
             </View>
-
             <View style={styles.row}>
-              <View style={styles.rowItem}>
-                <Text style={styles.label}>Guest</Text>
-                <View style={styles.iconInputContainer}>
-                  <FontAwesome name="user-circle-o" size={17} />
-                  <Picker
-                    selectedValue={guest}
-                    style={styles.picker}
-                    onValueChange={(itemValue) => setGuest(itemValue)}
-                  >
-                    <Picker.Item label="1" value={1} />
-                    <Picker.Item label="2" value={2} />
-                    <Picker.Item label="3" value={3} />
-                    <Picker.Item label="4" value={4} />
-                  </Picker>
-                </View>
-              </View>
-
+              {/* Room Picker */}
               <View style={styles.rowItem}>
                 <Text style={styles.label}>Room</Text>
                 <View style={styles.iconInputContainer}>
@@ -134,13 +154,46 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation }) => {
                   <Picker
                     selectedValue={room}
                     style={styles.picker}
-                    onValueChange={(itemValue) => setRoom(itemValue)}
+                    onValueChange={handleRoomChange}
                   >
-                    <Picker.Item label="1" value={1} />
-                    <Picker.Item label="2" value={2} />
-                    <Picker.Item label="3" value={3} />
-                    <Picker.Item label="4" value={4} />
+                    {roomHotel &&
+                      Array.isArray(roomHotel) &&
+                      roomHotel
+                        .filter((roomItem) => roomItem.availability)
+                        .map((roomItem) => (
+                          <Picker.Item
+                            key={roomItem._id}
+                            label={`${roomItem.room_number}`}
+                            value={roomItem.room_number}
+                          />
+                        ))}
+                    {!roomHotel || roomHotel.length === 0 ? (
+                      <Picker.Item label="Loading..." value={null} />
+                    ) : null}
                   </Picker>
+                </View>
+              </View>
+
+              {/* Guest Display */}
+              <View style={styles.rowItem}>
+                <Text style={styles.label}>Guest</Text>
+                <View style={styles.iconInputContainer}>
+                  <View style={styles.inputGuest}>
+                    <FontAwesome name="user-circle-o" size={17} />
+                    <Text style={styles.guestDisplay}>{capacity || 'N/A'}</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.rowItem}>
+                <Text style={styles.label}>Price</Text>
+                <View style={styles.iconInputContainer}>
+                  <View style={styles.inputGuest}>
+                    <FontAwesome name="user-circle-o" size={17} />
+                    <Text style={styles.guestDisplay}>{price || 'N/A'} $ /Night</Text>
+                  </View>
                 </View>
               </View>
             </View>
@@ -215,6 +268,18 @@ const styles = StyleSheet.create({
   picker: {
     flex: 1,
     marginLeft: 8,
+  },
+  inputGuest: {
+    flexDirection: 'row',
+    paddingVertical: 15,
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  guestDisplay: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 16,
+    color: '#333',
   },
   buttonContainer: {
     flexDirection: 'row',

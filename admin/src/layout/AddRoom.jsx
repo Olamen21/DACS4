@@ -60,7 +60,7 @@ const AddRoom = () => {
       formData.append('id_hotel', hotel_id);
       formData.append('room_number', number);
       formData.append('room_type', selectedRoom);
-      formData.append('price_per_night', price + "$");
+      formData.append('price_per_night', price);
       formData.append('capacity', capacity);
       formData.append('image', image);
 
