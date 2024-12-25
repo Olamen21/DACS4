@@ -62,9 +62,9 @@ const Signup = ({ navigation }) => {
     }
 
     try {
-    
-console.log(API_URL+API_URL_USER)
-      const response = await axios.get(API_URL+API_URL_USER);
+
+      console.log(API_URL + API_URL_USER)
+      const response = await axios.get(API_URL + API_URL_USER);
 
       const emailExists = response.data.some(user => user.email === EMAIL);
       if (emailExists) {
@@ -83,10 +83,10 @@ console.log(API_URL+API_URL_USER)
     let formData = {
       email: EMAIL,
       username: USERNAME,
-      password: hashedPassword, 
+      password: hashedPassword,
     };
 
-    axios.post(API_URL+API_URL_USER, formData)
+    axios.post(API_URL + API_URL_USER, formData)
       .then((response) => {
         if (response.data) {
           Alert.alert("Registration successful! Please log in to start.");

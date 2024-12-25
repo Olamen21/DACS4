@@ -34,22 +34,25 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
   const [roomHotel, setRoomHotel] = useState([]);
   const [date, setDate] = useState(new Date())
   const dateBooking = new Date()
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleClose = () => {
     setModalVisible(false)
   };
 
   const handleApply = () => {
-
+    setIsLoading(true);
     navigation.navigate('BookingHotel', {
       hotelId: hotelId,
-      roomId: room,
+      roomNumber: room,
       checkIn: checkInDate.toISOString(),
       checkOut: checkOutDate.toISOString(),
       dateBooking: dateBooking.toISOString(),
     });
-
+    setIsLoading(false); // Có thể loại bỏ nếu việc chuyển trang nhanh
   };
+
+
   const handleRoomChange = (selectedRoom) => {
     setRoom(selectedRoom);
 
@@ -82,7 +85,8 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
     } catch (error) {
       console.error(error);
     }
-  }, []);
+  }, [hotelId, dataHotel, roomHotel]);
+
 
   useEffect(() => {
     fetchData();
@@ -204,8 +208,14 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
               <TouchableOpacity onPress={handleClose} style={styles.resetButton}>
                 <Text style={styles.resetButtonText}>Close</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleApply} style={styles.applyButton}>
-                <Text style={styles.applyButtonText}>Apply</Text>
+              <TouchableOpacity
+                onPress={handleApply}
+                style={[styles.applyButton, isLoading && { opacity: 0.5 }]}
+                disabled={isLoading}
+              >
+                <Text style={styles.applyButtonText}>
+                  {isLoading ? 'Loading...' : 'Apply'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

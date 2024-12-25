@@ -60,11 +60,7 @@ const AppStack = () => {
         component={HotelInCity}
         options={{ headerShown: false }} // Hiện header cho EditProfile
       />
-       <Stack.Screen
-        name="ModalBooking"
-        component={ModalBooking}
-        options={{ headerShown: false }} // Hiện header cho EditProfile
-      />
+      
     </Stack.Navigator>
 
   );
