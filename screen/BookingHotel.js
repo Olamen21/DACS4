@@ -90,7 +90,7 @@ const BookingHotel = ({ navigation, route }) => {
         const roomData = responseRoom.data[0];
         setRoomHotel(roomData);
         setRoomId(roomData._id);
-
+        console.log("Booking room")
         const days = calculateDays(checkIn, checkOut);
         setTotalCost(days * roomData.price_per_night);
       } catch (error) {
