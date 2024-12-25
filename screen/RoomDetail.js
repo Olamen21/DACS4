@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { API_URL, API_URL_CITY, API_URL_HOTEL, API_URL_ROOM } from '@env';
@@ -7,6 +7,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLORS from '../style/Colors';
 const { width } = Dimensions.get('window');
 import BookingRoom from '../components/BookingRoom';
+import { isEqual } from "lodash";
 
 const RoomDetail = ({ route, navigation }) => {
   const { hotelId } = route.params;
@@ -18,13 +19,13 @@ const RoomDetail = ({ route, navigation }) => {
   const [dataHotel, setDataHotel] = useState("");
   const [roomHotel, setRoomHotel] = useState([]);
 
-  const amenitiesList = [
+  const amenitiesList = useMemo(() => [
     { id: 1, label: "Wi-Fi", icon: "wifi", color: "#d4f8c4" },
     { id: 2, label: "Gym", icon: "barbell-outline", color: "#c4e8f8" },
     { id: 3, label: "Restaurant", icon: "restaurant", color: "#f8ecc4" },
     { id: 4, label: "Parking", icon: "car-outline", color: "#e4d4f8" },
     { id: 5, label: "Swimming Pool", icon: "water-outline", color: "#c4f8f8" },
-  ];
+  ], []);
 
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -45,17 +46,17 @@ const RoomDetail = ({ route, navigation }) => {
       const roomData = resRoom.data;
 
       // Only update state if data has changed
-      if (hotelData !== dataHotel) {
+      if (!isEqual(hotelData, dataHotel)) {
         setDataHotel(hotelData);
       }
 
-      if (roomData !== roomHotel) {
+      if (!isEqual(roomData, roomHotel)) {
         setRoomHotel(roomData);
       }
 
       const amenitiesFromDb = hotelData.amenities.split(",").map((amenity) => amenity.trim());
       const filtered = amenitiesList.filter((item) => amenitiesFromDb.includes(item.label));
-      if (filtered !== filteredAmenities) {
+      if (!isEqual(filtered, filteredAmenities)) {
         setFilteredAmenities(filtered);
       }
 
@@ -63,21 +64,24 @@ const RoomDetail = ({ route, navigation }) => {
       const combinedImages = [hotelData.imageUrl, ...roomImages].filter(
         (img) => img && typeof img === "string" && img.startsWith("http")
       );
-      if (combinedImages !== images) {
+      if (!isEqual(combinedImages, images)) {
         setImages(combinedImages);
       }
 
       const prices = roomData.map((room) => room.price_per_night);
-      if (minPrice !== Math.min(...prices)) {
-        setMinPrice(Math.min(...prices));
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+
+      if (min !== minPrice) {
+        setMinPrice(min);
       }
-      if (maxPrice !== Math.max(...prices)) {
-        setMaxPrice(Math.max(...prices));
+      if (max !== maxPrice) {
+        setMaxPrice(max);
       }
     } catch (error) {
       console.error(error);
     }
-  }, []);
+  }, [hotelId, dataHotel, roomHotel, filteredAmenities, images, minPrice, maxPrice,  amenitiesList]);
 
   useEffect(() => {
     fetchData();
