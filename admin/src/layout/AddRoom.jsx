@@ -61,8 +61,10 @@ const AddRoom = () => {
       formData.append('room_number', number);
       formData.append('room_type', selectedRoom);
       formData.append('price_per_night', price);
+      // formData.append('availability', true);
       formData.append('capacity', capacity);
       formData.append('image', image);
+      
 
       const response = await axios.post(apiUrl + apiUrlRoom, formData, {
         headers: {

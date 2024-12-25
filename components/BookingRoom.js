@@ -25,16 +25,32 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
   // const [isFilterVisible, setFilterVisible] = React.useState(false);
   const [checkInDate, setCheckInDate] = useState(new Date(2024, 11, 12));
   const [checkOutDate, setCheckOutDate] = useState(new Date(2024, 11, 14));
+  const [showCheckInPicker, setShowCheckInPicker] = useState(false);
+  const [showCheckOutPicker, setShowCheckOutPicker] = useState(false);
   const [room, setRoom] = useState(null); // To store the selected room number
   const [capacity, setCapacity] = useState('N/A');
   const [price, setPrice] = useState('N/A')
-  const [showCheckInPicker, setShowCheckInPicker] = useState(false);
-  const [showCheckOutPicker, setShowCheckOutPicker] = useState(false);
+
   const [dataHotel, setDataHotel] = useState('')
   const [roomHotel, setRoomHotel] = useState([]);
   const [date, setDate] = useState(new Date())
   const dateBooking = new Date()
   const [isLoading, setIsLoading] = useState(false);
+
+    // Cải tiến việc mở DateTimePicker để tránh delay
+    const handleCheckInDateChange = (event, date) => {
+      setShowCheckInPicker(false);
+      if (date) {
+        setCheckInDate(date);
+      }
+    };
+  
+    const handleCheckOutDateChange = (event, date) => {
+      setShowCheckOutPicker(false);
+      if (date) {
+        setCheckOutDate(date);
+      }
+    };
 
   const handleClose = () => {
     setModalVisible(false)
@@ -82,15 +98,16 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
       if (roomData !== roomHotel) {
         setRoomHotel(roomData);
       }
+      console.log('Modal')
     } catch (error) {
       console.error(error);
     }
-  }, [hotelId, dataHotel, roomHotel]);
+  }, [hotelId]);
 
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [hotelId]);
 
   return (
     <View>
@@ -111,7 +128,11 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
                 <Text style={styles.label}>Check In</Text>
                 <View style={styles.iconInputContainer}>
                   <FontAwesome name="calendar-check-o" size={17} />
-                  <TouchableOpacity style={styles.dateInput} onPress={() => setShowCheckInPicker(true)} activeOpacity={0.7}>
+                  <TouchableOpacity
+                    style={styles.dateInput}
+                    onPress={() => setShowCheckInPicker(true)}
+                    activeOpacity={0.7}
+                  >
                     <Text>{checkInDate.toDateString()}</Text>
                   </TouchableOpacity>
                   {showCheckInPicker && (
@@ -119,10 +140,7 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
                       value={checkInDate}
                       mode="date"
                       display="default"
-                      onChange={(event, date) => {
-                        setShowCheckInPicker(false);
-                        if (date) setCheckInDate(date);
-                      }}
+                      onChange={handleCheckInDateChange}
                     />
                   )}
                 </View>
@@ -132,7 +150,10 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
                 <Text style={styles.label}>Check Out</Text>
                 <View style={styles.iconInputContainer}>
                   <FontAwesome name="calendar-check-o" size={17} />
-                  <TouchableOpacity onPress={() => setShowCheckOutPicker(true)} activeOpacity={0.7}>
+                  <TouchableOpacity
+                    onPress={() => setShowCheckOutPicker(true)}
+                    activeOpacity={0.7}
+                  >
                     <Text style={styles.dateInput}>{checkOutDate.toDateString()}</Text>
                   </TouchableOpacity>
                   {showCheckOutPicker && (
@@ -140,10 +161,7 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
                       value={checkOutDate}
                       mode="date"
                       display="default"
-                      onChange={(event, date) => {
-                        setShowCheckOutPicker(false);
-                        if (date) setCheckOutDate(date);
-                      }}
+                      onChange={handleCheckOutDateChange}
                     />
                   )}
                 </View>

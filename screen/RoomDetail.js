@@ -18,13 +18,7 @@ const RoomDetail = ({ route, navigation }) => {
   const [dataHotel, setDataHotel] = useState("");
   const [roomHotel, setRoomHotel] = useState([]);
 
-  const amenitiesList = [
-    { id: 1, label: "Wi-Fi", icon: "wifi", color: "#d4f8c4" },
-    { id: 2, label: "Gym", icon: "barbell-outline", color: "#c4e8f8" },
-    { id: 3, label: "Restaurant", icon: "restaurant", color: "#f8ecc4" },
-    { id: 4, label: "Parking", icon: "car-outline", color: "#e4d4f8" },
-    { id: 5, label: "Swimming Pool", icon: "water-outline", color: "#c4f8f8" },
-  ];
+
 
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -36,52 +30,74 @@ const RoomDetail = ({ route, navigation }) => {
 
   const fetchData = useCallback(async () => {
     try {
+      const amenitiesList = [
+        { id: 1, label: "Wi-Fi", icon: "wifi", color: "#d4f8c4" },
+        { id: 2, label: "Gym", icon: "barbell-outline", color: "#c4e8f8" },
+        { id: 3, label: "Restaurant", icon: "restaurant", color: "#f8ecc4" },
+        { id: 4, label: "Parking", icon: "car-outline", color: "#e4d4f8" },
+        { id: 5, label: "Swimming Pool", icon: "water-outline", color: "#c4f8f8" },
+      ];
+  
       const [resHotel, resRoom] = await Promise.all([
         axios.get(`${API_URL}${API_URL_HOTEL}${hotelId}`),
         axios.get(`${API_URL}${API_URL_ROOM}search/${hotelId}`),
       ]);
-
+  
       const hotelData = resHotel.data;
       const roomData = resRoom.data;
-
-      // Only update state if data has changed
-      if (hotelData !== dataHotel) {
+  
+      // Cập nhật state nếu dữ liệu khác
+      if (hotelData && hotelData !== dataHotel) {
         setDataHotel(hotelData);
       }
-
-      if (roomData !== roomHotel) {
+  
+      if (roomData && roomData !== roomHotel) {
         setRoomHotel(roomData);
       }
-
+  
       const amenitiesFromDb = hotelData.amenities.split(",").map((amenity) => amenity.trim());
       const filtered = amenitiesList.filter((item) => amenitiesFromDb.includes(item.label));
-      if (filtered !== filteredAmenities) {
+  
+      // So sánh mảng amenities
+      const areArraysEqual =
+        filtered.length === filteredAmenities.length &&
+        filtered.every((item, index) => item.label === filteredAmenities[index]?.label);
+  
+      if (!areArraysEqual) {
         setFilteredAmenities(filtered);
       }
-
+  
       const roomImages = roomData.flatMap((room) => room.roomImages || []);
       const combinedImages = [hotelData.imageUrl, ...roomImages].filter(
         (img) => img && typeof img === "string" && img.startsWith("http")
       );
-      if (combinedImages !== images) {
+  
+      if (JSON.stringify(combinedImages) !== JSON.stringify(images)) {
         setImages(combinedImages);
       }
-
+  
       const prices = roomData.map((room) => room.price_per_night);
-      if (minPrice !== Math.min(...prices)) {
-        setMinPrice(Math.min(...prices));
+      const minPriceValue = Math.min(...prices);
+      const maxPriceValue = Math.max(...prices);
+  
+      if (minPrice !== minPriceValue) {
+        setMinPrice(minPriceValue);
       }
-      if (maxPrice !== Math.max(...prices)) {
-        setMaxPrice(Math.max(...prices));
+      if (maxPrice !== maxPriceValue) {
+        setMaxPrice(maxPriceValue);
       }
+      console.log('detail room');
     } catch (error) {
       console.error(error);
     }
-  }, []);
-
+  }, [hotelId]);  // Chỉ phụ thuộc vào hotelId
+  
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [hotelId]);  // Chỉ phụ thuộc vào hotelId
+   // Chỉ phụ thuộc vào hotelId và fetchData
+  
+  
 
   return (
     <View style={styles.container}>
@@ -172,13 +188,13 @@ const RoomDetail = ({ route, navigation }) => {
         </TouchableOpacity>
 
         {modalVisible && (
-          <BookingRoom 
-          modalVisible={modalVisible} 
-          setModalVisible={setModalVisible} 
-          navigation={navigation}  
-          hotelId = {hotelId}
+          <BookingRoom
+            modalVisible={modalVisible}
+            setModalVisible={setModalVisible}
+            navigation={navigation}
+            hotelId={hotelId}
           />
-        )} 
+        )}
 
         {/* <Pressable style={styles.button} onPress={() => setModalVisible(true)}>
           <Text style={styles.buttonText}>Select Rooms</Text>
@@ -213,35 +229,35 @@ const styles = StyleSheet.create({
   headerIcons: { position: 'absolute', top: 10, left: 10, right: 10, flexDirection: 'row', justifyContent: 'space-between' },
   iconButton: { padding: 10, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 50 },
   contentContainer: { padding: 15 },
-  hotelName: { 
-    fontSize: 24, 
-    fontWeight: 'bold', 
+  hotelName: {
+    fontSize: 24,
+    fontWeight: 'bold',
     color: '#333',
-    marginBottom:10,
+    marginBottom: 10,
   },
   rating: { fontSize: 14, color: '#888', marginVertical: 5 },
-  address: { 
-    fontSize: 14, 
+  address: {
+    fontSize: 14,
     color: '#555',
-    marginBottom:10,
+    marginBottom: 10,
   },
-  sectionTitle: { 
+  sectionTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: COLORS.black,
     marginBottom: 10,
-   },
+  },
   description: {
-     fontSize: 14, 
-     color: '#666', 
-     lineHeight: 20,
-     marginBottom:10,
-    },
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
+    marginBottom: 10,
+  },
   amenitiesContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 10,
-    marginBottom:40,
+    marginBottom: 40,
   },
   amenityItem: {
     alignItems: "center",

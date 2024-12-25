@@ -201,9 +201,9 @@ const AddHotel = () => {
                             <input
                                 className="checkbox"
                                 type="checkbox"
-                                value="Hồ bơi"
+                                value="Swimming Pool"
                                 onChange={handleCheckboxChange}
-                                checked={selectedAmenities.includes("Hồ bơi")}
+                                checked={selectedAmenities.includes("Swimming Pool")}
                             />
                             Swimming Pool
                         </label><br />
@@ -212,9 +212,9 @@ const AddHotel = () => {
                             <input
                                 className="checkbox"
                                 type="checkbox"
-                                value="Phòng gym"
+                                value="Gym"
                                 onChange={handleCheckboxChange}
-                                checked={selectedAmenities.includes("Phòng gym")}
+                                checked={selectedAmenities.includes("Gym")}
                             />
                             Gym
                         </label><br />
@@ -234,9 +234,9 @@ const AddHotel = () => {
                             <input
                                 className="checkbox"
                                 type="checkbox"
-                                value="Nhà hàng"
+                                value="Restaurant"
                                 onChange={handleCheckboxChange}
-                                checked={selectedAmenities.includes("Nhà hàng")}
+                                checked={selectedAmenities.includes("Restaurant")}
                             />
                             Restaurant
                         </label><br />
