@@ -50,6 +50,7 @@ module.exports={
             room_number: req.body.room_number,
             room_type: req.body.room_type,
             price_per_night: req.body.price_per_night,
+            availability: true,
             capacity: req.body.capacity,
             roomImages: result.secure_url, 
         }); 
