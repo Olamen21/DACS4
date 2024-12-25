@@ -140,6 +140,38 @@ module.exports={
         }
     },
 
+    searchNumberRoom: async (req, res) => {
+        try {
+          const { key } = req.params;
+      
+          // Kiểm tra giá trị của key
+          if (!key || typeof key !== 'string' || key.trim() === '') {
+            return res.status(400).json({ message: "Invalid search key" });
+          }
+      
+          // Chuyển key thành chuỗi rõ ràng
+          const keyString = String(key);
+      
+          // Tìm kiếm phòng theo room_number
+          const rooms = await Room.find({
+            room_number: { $regex: keyString, $options: 'i' },
+          });
+      
+          if (rooms.length === 0) {
+            return res.status(404).json({ message: "No rooms found with the given key" });
+          }
+      
+          res.status(200).json(rooms);
+        } catch (error) {
+          if (error.name === 'BSONError') {
+            return res.status(400).json({ message: "Invalid search key format" });
+          }
+          console.error("Search error:", error);
+          res.status(500).json({ message: "Failed to search for rooms", error: error.message });
+        }
+      },
+      
+      
     searchRoom: async (req, res) => {
         try {
             const { id_hotel } = req.params; // Lấy id_hotel từ params
