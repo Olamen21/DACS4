@@ -89,12 +89,12 @@ const MainTab = () => {
             case 'Home':
               iconName = 'home';
               break;
-            case 'Favourite':
-              iconName = 'heart';
-              break;
-            case 'Booking':
-              iconName = 'calendar';
-              break;
+            // case 'Favourite':
+            //   iconName = 'heart';
+            //   break;
+            // case 'Booking':
+            //   iconName = 'calendar';
+            //   break;
             case 'ChatBot':
               iconName = 'comments';
               break;
@@ -119,8 +119,8 @@ const MainTab = () => {
       })}
     >
       <Tab.Screen name="Home"         component={HomeStack}     options={{ tabBarLabel: 'Home' }}           />
-      <Tab.Screen name="Favourite"    component={Favourite}     options={{ tabBarLabel: 'Favourite' }}      />
-      <Tab.Screen name="Booking"      component={Booking}       options={{ tabBarLabel: 'Booking' }}        />
+      {/* <Tab.Screen name="Favourite"    component={Favourite}     options={{ tabBarLabel: 'Favourite' }}      />
+      <Tab.Screen name="Booking"      component={Booking}       options={{ tabBarLabel: 'Booking' }}        /> */}
       <Tab.Screen name="ChatBot"      component={ChatBot}       options={{ tabBarLabel: 'Chatbot' }}        />
       <Tab.Screen name="Profile"      component={Profile}       options={{ tabBarLabel: 'Profile' }}        />
     </Tab.Navigator>

@@ -129,12 +129,12 @@ const RoomDetail = ({ route, navigation }) => {
 
         {/* Back and Favorite Buttons */}
         <View style={styles.headerIcons}>
-          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Home')}>
+          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
             <Icon name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
+          {/* <TouchableOpacity style={styles.iconButton}>
             <Icon name="heart-outline" size={24} color="#fff" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
 

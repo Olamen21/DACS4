@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ScrollView, StyleSheet, TouchableOpacity, Modal, TextInput } from 'react-native';
+import { View, Text, Image, ScrollView, StyleSheet, TouchableOpacity, Modal, TextInput, Pressable } from 'react-native';
 import { Icon, SearchBar } from 'react-native-elements';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -117,16 +117,17 @@ const FindSearchScreen = ({ route, navigation }) => {
 
             <View style={styles.headerHotelList}>
                 <Text style={styles.hotelListTitle}>Hotel Lists ({numberOfHotels})</Text>
-                <TouchableOpacity style={styles.sortButton} onPress={() => setFilterVisible(true)}>
+                {/* <TouchableOpacity style={styles.sortButton} onPress={() => setFilterVisible(true)}>
                     <Text style={styles.sortButtonText}>Sort by</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
             </View>
             {/* Nội dung có thể cuộn (Danh sách khách sạn) */}
            {/* Nội dung có thể cuộn (Danh sách khách sạn) */}
            <ScrollView contentContainerStyle={styles.scrollContainer}>
                 {dataHotel && dataHotel.length > 0 ? (
                     dataHotel.map((hotel, index) => (
-                        <View key={index} style={styles.hotelCard}>
+                        <Pressable key={hotel._id} onPress={() => navigation.navigate('RoomDetail', { hotelId: hotel._id})}>
+                            <View key={index} style={styles.hotelCard}>
                             <Image
                                 style={styles.hotelImage}
                                 source={{ uri: hotel.imageUrl }} // Sử dụng hình ảnh động từ API
@@ -161,6 +162,7 @@ const FindSearchScreen = ({ route, navigation }) => {
 
                             </View>
                         </View>
+                        </Pressable>
                     ))
                 ) : (
                     <Text style={styles.noHotels}>No hotels available</Text>
@@ -172,7 +174,7 @@ const FindSearchScreen = ({ route, navigation }) => {
                 <Text style={styles.filterButtonText}>Filters</Text>
             </TouchableOpacity> */}
 
-            <Modal
+            {/* <Modal
                 animationType="slide"
                 transparent={true}
                 visible={isFilterVisible}
@@ -301,10 +303,10 @@ const FindSearchScreen = ({ route, navigation }) => {
                                     />
                                 </View>
                             </View>
-                        </View>
+                        </View> */}
 
                         {/* Các input khác: check-in, check-out, số khách, giá */}
-                        <View style={styles.buttonContainer}>
+                        {/* <View style={styles.buttonContainer}>
                             <TouchableOpacity onPress={handleReset} style={styles.resetButton}>
                                 <Text style={styles.resetButtonText}>Reset</Text>
                             </TouchableOpacity>
@@ -314,7 +316,7 @@ const FindSearchScreen = ({ route, navigation }) => {
                         </View>
                     </View>
                 </View>
-            </Modal>
+            </Modal> */}
 
         </View>
     );

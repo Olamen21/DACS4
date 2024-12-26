@@ -185,7 +185,7 @@ const Login = ({navigation}) => {
         }}>
 
 
-              <TouchableOpacity
+              {/* <TouchableOpacity
               // onPress={()=> onGoogleButtonPress()}
               style={styles.TouchGoogle}>
                 <Image 
@@ -198,7 +198,7 @@ const Login = ({navigation}) => {
                   resizeMode='contain'
                   />
                   <Text style={{color: COLORS.black}}>Google</Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
         </View>
 
 

@@ -184,10 +184,10 @@ const Home = () => {
                                     <td>{formatDate(booking.createdAt)}</td>
                                     <td>{usernames[booking.id_user] || "Loading..."}</td>
                                     <td>{hotelNames[booking.id_hotel] || "Loading..."}</td>
-                                    <td >{prices[booking.id_room] || "Loading..."}</td>
+                                    <td >{prices[booking.id_room] || "Loading..."} $</td>
                                     <td>{formatDate(booking.check_in)}</td>
                                     <td>{formatDate(booking.check_out)}</td>
-                                    <td>{booking.total_cost}</td>
+                                    <td>{booking.total_cost} $</td>
                                     <td className=''>
                                         <div style={{ display: 'flex', gap: '10px' }}>
                                             <Button text="Delete" onClick={() => handleDelete(booking._id)} />
