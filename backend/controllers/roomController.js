@@ -98,6 +98,7 @@ module.exports={
 
             room.room_type = req.body.room_type || room.room_type;
             room.price_per_night = req.body.price_per_night || room.price_per_night;
+            room.availability = req.body.availability || room.availability;
             room.capacity = req.body.capacity || room.capacity;
             room.roomImages = imageUrl;
             await room.save();
