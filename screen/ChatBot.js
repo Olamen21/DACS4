@@ -12,7 +12,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { CHATBOT_SERVER_URL } from '@env';
 import NetInfo from '@react-native-community/netinfo';
-
+import Clipboard from '@react-native-clipboard/clipboard';
 
 const ChatBot = () => {
   const [messages, setMessages] = useState([]);
@@ -89,6 +89,11 @@ const ChatBot = () => {
     }
   };
 
+  const copyToClipboard = (text) => {
+    Clipboard.setString(text);
+    alert('Đã sao chép văn bản!');
+  };
+
   return (
     <KeyboardAvoidingView style={styles.container}>
         <View style={styles.header}>
@@ -101,9 +106,11 @@ const ChatBot = () => {
           <FlatList
               data={messages}
               renderItem={({ item }) => (
-              <Text style={item.isUser ? styles.userMessage : styles.botMessage}>
-                  {item.text}
-              </Text>
+                <TouchableOpacity onPress={() => copyToClipboard(item.text)}>
+                  <Text style={item.isUser ? styles.userMessage : styles.botMessage}>
+                    {item.text}
+                  </Text>
+                </TouchableOpacity>
               )}
               keyExtractor={(_, index) => index.toString()}
           />
