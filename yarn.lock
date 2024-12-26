@@ -1123,6 +1123,11 @@
   dependencies:
     merge-options "^3.0.4"
 
+"@react-native-clipboard/clipboard@^1.15.0":
+  version "1.15.0"
+  resolved "https://registry.npmjs.org/@react-native-clipboard/clipboard/-/clipboard-1.15.0.tgz"
+  integrity sha512-YDMC3E956jn9zE11uKGcQDKS1SO9q72iNHxZyrKY5y9XYwZcA9vo3Xk74+zRnf7cM48drDO0s9lyAPUlOvyhrw==
+
 "@react-native-community/cli-clean@14.1.0":
   version "14.1.0"
   dependencies:
@@ -4562,7 +4567,7 @@ react-native-vector-icons@^10.2.0, react-native-vector-icons@>7.0.0:
     prop-types "^15.7.2"
     yargs "^16.1.1"
 
-react-native@*, "react-native@^0.0.0-0 || >=0.65 <1.0", react-native@>=0.40, react-native@>=0.42.0, react-native@>=0.48.4, react-native@>=0.59, react-native@0.75.4:
+react-native@*, "react-native@^0.0.0-0 || >=0.65 <1.0", "react-native@>= 0.61.5", react-native@>=0.40, react-native@>=0.42.0, react-native@>=0.48.4, react-native@>=0.59, react-native@0.75.4:
   version "0.75.4"
   dependencies:
     "@jest/create-cache-key-function" "^29.6.3"
@@ -4629,7 +4634,7 @@ react-test-renderer@18.3.1:
     react-shallow-renderer "^16.15.0"
     scheduler "^0.23.2"
 
-react@*, "react@^16.0.0 || ^17.0.0 || ^18.0.0", "react@^16.8.0 || ^17.0.0 || ^18.0.0", "react@^16.9.0 || ^17.0.0 || ^18", "react@^18 || ^19", react@^18.0, react@^18.2.0, react@^18.3.1, "react@>=15.1 || >=16.0.0", react@>=16.8, react@>=17.0.0, react@18.3.1:
+react@*, "react@^16.0.0 || ^17.0.0 || ^18.0.0", "react@^16.8.0 || ^17.0.0 || ^18.0.0", "react@^16.9.0 || ^17.0.0 || ^18", "react@^18 || ^19", react@^18.0, react@^18.2.0, react@^18.3.1, "react@>= 16.9.0", "react@>=15.1 || >=16.0.0", react@>=16.8, react@>=17.0.0, react@18.3.1:
   version "18.3.1"
   dependencies:
     loose-envify "^1.1.0"
