@@ -10,6 +10,9 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 from tensorflow.keras.models import load_model
 from datetime import datetime
+from pymongo.errors import PyMongoError
+import logging
+import uuid
 
 # Khởi tạo
 lemmatizer = WordNetLemmatizer()
@@ -20,6 +23,7 @@ model = load_model('chatbotmodel.h5')
 load_dotenv("python.env")
 MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
 MONGO_URI = f"mongodb+srv://BookingHotel:{os.environ['MONGO_PASSWORD']}@bookinghotel.dsvue.mongodb.net/"
+logging.basicConfig(level=logging.INFO)
 
 # Kết nối MongoDB
 def connect_db():
@@ -102,6 +106,25 @@ def extract_room_type(message,db):
         if room_type.lower() in message.lower():
             return room_type
     return None
+
+def extract_phone_number(message):
+    phone_pattern = re.compile(r'\b\d{9,11}\b')
+    phone_match = phone_pattern.search(message)
+    return phone_match.group(0) if phone_match else None
+
+def extract_customer_name(message):
+    name_pattern = re.compile(
+        r"(?:tôi tên là|tên tôi là|tôi là)\s+([A-ZĐÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÉÈẺẸẼÊỀẾỆỂỄÓÒỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÍÌỊỈĨÚÙỦỤŨƯỪỨỰỬỮÝỲỴỶỸa-zđàáạảãâầấậẩẫăằắặẳẵéèẻẹẽêềếệểễóòọỏõôồốộổỗơờớợởỡíìịỉĩúùủụũưừứựửữýỳỵỷỹ\s]+)",
+        re.IGNORECASE
+    )
+    name_match = name_pattern.search(message)
+    return name_match.group(1).strip() if name_match else None
+
+def generate_booking_id(hotel_name, room_type):
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    hotel_code = hotel_name[:3].upper()
+    room_code = room_type[:3].upper()
+    return f"{hotel_code}-{room_code}-{timestamp}-{uuid.uuid4().hex[:6]}"
 
 def find_hotels_by_location(city_name, db):
     cities_collection = db["cities"]
@@ -189,14 +212,119 @@ def find_room_type(hotel_name, db):
         return f"Hiện khách sạn {hotel_name} không có phòng nào được cập nhật."
     room_types_str = ", ".join(sorted(room_types))
     return f"Khách sạn {hotel_name} có các loại phòng: {room_types_str}."
+
+def book_room(hotel_name, room_type, customer_name, phone, check_in_date, check_out_date, db):
+    if not all([hotel_name, room_type, customer_name, phone, check_in_date, check_out_date]):
+        return {"status": "error", "message": "Vui lòng nhập đầy đủ thông tin."}
     
+    try:
+        hotels_collection = db["hotels"]
+        rooms_collection = db["rooms"]
+        bookings_collection = db["bookings"]
+    
+        hotel = hotels_collection.find_one({"nameHotel": hotel_name})
+        if not hotel:
+            return f"Không tìm thấy khách sạn '{hotel_name}'."
+    
+        room = rooms_collection.find_one({
+            "id_hotel": hotel["_id"],
+            "room_type": room_type,
+            "availability": True
+        })
+        if not room:
+            return f"Không có phòng '{room_type}' nào khả dụng tại khách sạn '{hotel_name}'."
+        
+        existing_booking = bookings_collection.find_one({
+            "id_room": room["_id"],
+            "check_out_date": {"$gte": check_in_date},
+            "check_in_date": {"$lte": check_out_date}
+        })
+        if existing_booking:
+            return {"status": "error", "message": "Phòng đã được đặt trong khoảng thời gian này."}
+        
+        booking_id = generate_booking_id(hotel_name, room_type)
+        
+        booking = {
+            "booking_id"        : booking_id,
+            "customer_name"     : customer_name,
+            "phone"             : phone,
+            "id_hotel"          : hotel["_id"],
+            "id_room"           : room["_id"],
+            "check_in_date"     : check_in_date,
+            "check_out_date"    : check_out_date,
+            "total_cost"        : room["price_per_night"]
+        }
+        bookings_collection.insert_one(booking)
+    
+        rooms_collection.update_one({"_id": room["_id"]}, {"$set": {"availability": False}})
+
+        return f"Đặt phòng thành công!Mã booking của bạn là: {booking_id}. Loại phòng '{room_type}', phòng số {room['room_number']} tại khách sạn '{hotel_name}' đã được đặt từ {check_in_date.strftime('%d/%m/%Y')} đến {check_out_date.strftime('%d/%m/%Y')}.\nTổng tiền: {room['price_per_night']}"
+    except PyMongoError as e:
+        return {"status": "error", "message": f"Lỗi hệ thống: {str(e)}."}
+
+def handle_booking_request(message, hotel_name, room_type, customer_name, phone_number, db):
+    responses = []
+
+    # Trích xuất ngày từ tin nhắn
+    date_pattern = re.compile(r'(\d{2}-\d{2}-\d{4})')
+    dates = date_pattern.findall(message)
+
+    if len(dates) == 2:
+        check_in_date = dates[0]
+        check_out_date = dates[1]
+
+        try:
+            # Chuyển đổi ngày từ chuỗi sang datetime theo định dạng DD-MM-YYYY
+            check_in_date_obj = datetime.strptime(check_in_date, "%d-%m-%Y")
+            check_out_date_obj = datetime.strptime(check_out_date, "%d-%m-%Y")
+
+            # Kiểm tra logic ngày
+            if check_in_date_obj >= check_out_date_obj:
+                return ["Ngày check-out phải sau ngày check-in."]
+            if check_in_date_obj < datetime.now():
+                return ["Ngày check-in không thể là ngày quá khứ."]
+
+        except ValueError:
+            return ["Định dạng ngày không hợp lệ. Vui lòng nhập ngày theo định dạng DD-MM-YYYY."]
+    else:
+        return ["Vui lòng cung cấp ngày check-in và check-out hợp lệ theo định dạng DD-MM-YYYY."]
+
+    # Kiểm tra thông tin bắt buộc
+    if not all([hotel_name, room_type, customer_name, phone_number]):
+        missing_info = []
+        if not customer_name:
+            missing_info.append("họ và tên")
+        if not phone_number:
+            missing_info.append("số điện thoại")
+        if not hotel_name:
+            missing_info.append("tên khách sạn")
+        if not room_type:
+            missing_info.append("loại phòng")
+
+        return [f"Vui lòng cung cấp thông tin thiếu: {', '.join(missing_info)}."]
+
+    # Gọi hàm đặt phòng
+    try:
+        booking_response = book_room(
+            hotel_name, room_type, customer_name, phone_number, check_in_date_obj, check_out_date_obj, db
+        )
+        responses = [booking_response]
+    except Exception as e:
+        logging.error(f"Lỗi khi đặt phòng: {e}")
+        responses = ["Đã xảy ra lỗi khi xử lý yêu cầu đặt phòng. Vui lòng thử lại sau."]
+
+    return responses
 
 def get_response(intents_list, intents_json, message, db):
+    if not intents_list:
+        return ["Xin lỗi, tôi không hiểu yêu cầu của bạn. Bạn có thể thử diễn đạt lại."]
     tag = intents_list[0]['intent']
     list_of_intents = intents_json['intents']
     responses = []
     hotel_name = extract_hotel_name(message,db)
     room_type = extract_room_type(message,db)
+    phone_number = extract_phone_number(message)
+    customer_name = extract_customer_name(message)
     
     for i in list_of_intents:
         if i['tag'] == tag:
@@ -230,6 +358,9 @@ def get_response(intents_list, intents_json, message, db):
                     responses = [room_types]
                 else:
                     responses = ["Xin vui lòng cung cấp tên khách sạn mà bạn muốn kiểm tra."] 
+            elif tag == "dat_phong":
+                booking = handle_booking_request(message, hotel_name, room_type, customer_name, phone_number, db);
+                responses = [booking]
             else:
                 # Phản hồi mặc định từ intents.json
                 responses = random.choice(i['responses'])

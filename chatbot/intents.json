@@ -29,6 +29,11 @@
       "tag": "hoi_loai_phong",
       "patterns": ["Khách sạn có những loại phòng nào?","Các loại phòng tại đây là gì?","Cho tôi biết về các loại phòng?","Có phòng đơn không?","Phòng đôi có không?","Khách sạn có phòng gia đình không?","Các loại phòng hiện có là gì?"],
       "responses": ["Khách sạn chúng tôi có các loại phòng: Phòng đơn, Phòng đôi, Phòng gia đình và Phòng suite. Bạn muốn biết thêm chi tiết về loại nào?","Chúng tôi cung cấp các loại phòng: Phòng đơn, Phòng đôi, và Phòng suite. Bạn muốn tìm hiểu thêm về loại phòng nào?","Hiện tại, khách sạn có các loại phòng như sau: Phòng đơn, Phòng đôi, Phòng gia đình. Bạn quan tâm đến loại phòng nào?"]
+    },
+    {
+      "tag": "dat_phong",
+      "patterns": ["Tôi muốn đặt phòng", "Đặt phòng giúp tôi", "Có thể đặt phòng ở đây không?", "Làm sao để đặt phòng?", "Tôi muốn đặt phòng ở Đà Nẵng ngày mai", "Đặt phòng tại khách sạn A", "Tôi cần đặt phòng tại khách sạn B cho tuần tới"],
+      "responses": ["Bạn muốn đặt phòng tại đâu và khi nào? Vui lòng cung cấp ngày check-in và check-out.", "Rất vui lòng hỗ trợ! Bạn có thể cho tôi biết địa điểm, ngày check-in, và loại phòng bạn muốn đặt?", "Để đặt phòng, vui lòng cung cấp thông tin sau: địa điểm, ngày check-in, ngày check-out, và loại phòng."]
     }
   ]
 }
