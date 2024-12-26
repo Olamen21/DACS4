@@ -62,7 +62,7 @@ const BookingHotel = ({ navigation, route }) => {
       Alert.alert("Booking successful!");
   
       // Sau đó cập nhật trạng thái phòng
-      await axios.patch(API_URL + API_URL_ROOM, form, {
+      await axios.patch(API_URL + API_URL_ROOM + roomId, form, {
         headers: {
             'Content-Type': 'multipart/form-data', 
         },
@@ -129,13 +129,6 @@ const BookingHotel = ({ navigation, route }) => {
   if (isLoading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
-
-
-
-  if (isLoading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
-  }
-
 
   return (
     <View style={styles.container}>

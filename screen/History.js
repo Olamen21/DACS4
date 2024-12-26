@@ -1,11 +1,15 @@
 import React, { useEffect, useState, } from 'react';
 import { useSelector } from 'react-redux'
-import { View, Text, Image, ScrollView, StyleSheet, TouchableOpacity, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, Image, ScrollView, StyleSheet, TouchableOpacity, Pressable, ActivityIndicator, Dimensions, Modal, Alert } from 'react-native';
 import { Icon } from 'react-native-elements';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { API_URL, API_URL_CITY, API_URL_HOTEL, API_URL_ROOM, API_URL_BOOKING } from '@env';
 import axios from 'axios';
+import Button from '../components/Button';
+import COLORS from '../style/Colors';
 
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 const History = ({ navigation }) => {
   const user_id = useSelector((state) => state.auth.user_id);
 
@@ -14,6 +18,12 @@ const History = ({ navigation }) => {
   const [imgHotel, setImgHotel] = useState({});
 
   const [isLoading, setIsLoading] = useState(true);
+ 
+
+  const [visible, setVisible] = useState(false); // Quản lý trạng thái modal
+
+  const openModal = () => setVisible(true); // Hàm mở modal
+  const closeModal = () => setVisible(false); // Hàm đóng modal
 
   const formatDate = (rawDate) => {
     let date = new Date(rawDate);
@@ -23,6 +33,19 @@ const History = ({ navigation }) => {
     return `${day}/${month}/${year}`;
   }
 
+  const deleteBooking = async (booking_id) => {
+    closeModal()
+    try {
+      const responsive = await axios.delete(API_URL + API_URL_BOOKING + booking_id)
+      setBooking(responsive.data)
+      Alert.alert("Delete booking successful.");
+      console.log("delete")
+      
+  } catch (error) {
+      console.log(error)
+  }
+}
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -115,9 +138,48 @@ const History = ({ navigation }) => {
                     <Text style={styles.hotelDetail}>
                       Total cost: {formatDate(bookingItem.total_cost)}
                     </Text>
+                    <Button
+                      title="Delete"
+                      filled
+                      onPress={openModal} // Mở modal khi nhấn nút Delete
+                      style={{
+                        marginBottom: 4,
+                        width: '80%',
+                        height: 50,
+                        marginTop: 10,
+                        marginLeft: 10,
+                      }}
+                    />
                   </View>
+                  <Modal
+                    visible={visible}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={closeModal} // Đóng modal khi nhấn nút Back của thiết bị
+                  >
+                    <View style={styles.overlay}>
+                      <View style={styles.modalContent}>
+                        <Text style={styles.text}>Are you sure you want to delete this booking?</Text>
+                        <View style={styles.buttonContainer}>
+                          <Button
+                            title="No"
+                            onPress={closeModal} // Đóng modal khi nhấn Cancel
+                            style={styles.buttonModal}
+                          />
+                          <Button
+                            title="Yes"
+                            filled
+                            style={styles.buttonModal}
+                            onPress={() => deleteBooking(bookingItem._id)}
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  </Modal>
                 </View>
+
               </View>
+
             </Pressable>
           ))
         ) : (
@@ -228,12 +290,44 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'black',
   },
-  contentDetail:{
-    marginTop:7,
+  contentDetail: {
+    marginTop: 7,
   },
   hotelDetail: {
     fontSize: 14,
     color: 'grey',
     marginVertical: 2,
   },
+  overlay: {
+    flex: 1,
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(0, 0, 0, 0.6)', 
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#888',
+    width: '90%',
+    borderRadius: 10,
+    alignItems: 'center', 
+  },
+  text: {
+    color: COLORS.black,
+    fontSize: 20,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingLeft: windowWidth * 0.03,
+    paddingRight: windowWidth * 0.03,
+  },
+  buttonModal:{
+    width:'48%',
+    height:windowHeight*0.065
+  }
 })
