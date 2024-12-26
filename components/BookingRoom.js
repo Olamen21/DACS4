@@ -58,6 +58,8 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
 
   const handleApply = () => {
     setIsLoading(true);
+  
+    // Điều hướng đến BookingHotel
     navigation.navigate('BookingHotel', {
       hotelId: hotelId,
       roomNumber: room,
@@ -65,11 +67,19 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
       checkOut: checkOutDate.toISOString(),
       dateBooking: dateBooking.toISOString(),
     });
-    setIsLoading(false); // Có thể loại bỏ nếu việc chuyển trang nhanh
+  
+    // Lắng nghe khi quá trình điều hướng hoàn tất
+    const unsubscribe = navigation.addListener('transitionEnd', () => {
+      setIsLoading(false);
+      unsubscribe(); // Hủy lắng nghe
+    });
   };
+  
 
 
   const handleRoomChange = (selectedRoom) => {
+    const start = Date.now();
+    // console.time('handleRoomChange');
     setRoom(selectedRoom);
 
     const selectedRoomDetails = roomHotel.find(
@@ -78,9 +88,12 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
 
     setCapacity(selectedRoomDetails?.capacity?.toString() || 'N/A');
     setPrice(selectedRoomDetails?.price_per_night?.toString() || 'N/A')
+    const end = Date.now(); // Kết thúc đo thời gian
+    console.log(`handleRoomChange executed in ${end - start} ms`);
   };
 
   const fetchData = useCallback(async () => {
+    const start = Date.now();
     try {
       const [resHotel, resRoom] = await Promise.all([
         axios.get(`${API_URL}${API_URL_HOTEL}${hotelId}`),
@@ -102,6 +115,8 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
     } catch (error) {
       console.error(error);
     }
+    const end = Date.now(); // Kết thúc đo thời gian
+    console.log(`fetchData executed in ${end - start} ms`);
   }, [hotelId]);
 
 

@@ -36,11 +36,10 @@ const BookingHotel = ({ navigation, route }) => {
   };
 
   const bookingNow = async () => {
+    const start = Date.now();
     console.log('press BookingNow');
-
-    // Cập nhật trạng thái loading
     setIsLoading(true);
-
+  
     let formData = {
       id_hotel: hotelId,
       id_user: user_id,
@@ -49,41 +48,51 @@ const BookingHotel = ({ navigation, route }) => {
       check_out: checkOut,
       total_cost: totalCost,
     };
-
+  
     let form = {
       availability: false,
-    }
+    };
+  
     try {
-      const response = await axios.post(API_URL + API_URL_BOOKING, formData);
-
-      if (response.data) {
-        console.log(API_URL + API_URL_ROOM + roomId)
-        const updateResponse = await axios.patch(API_URL + API_URL_ROOM + roomId, form);
-
-        if (updateResponse.data) {
-          console.log("Update room successful!");
-          Alert.alert("Booking successful!");
-          navigation.navigate("Home");
-        } else {
-          throw new Error("Room update failed!");
-        }
+      // Gửi yêu cầu song song nếu có thể
+      const [bookingResponse, updateResponse] = await Promise.all([
+        axios.post(API_URL + API_URL_BOOKING, formData),
+        axios.patch(API_URL + API_URL_ROOM + roomId, form),
+      ]);
+  
+      if (bookingResponse.data && updateResponse.data) {
+        console.log("Booking and room update successful!");
+        Alert.alert("Booking successful!");
+        navigation.navigate("Home");
       } else {
-        throw new Error("Booking failed!");
+        throw new Error("Booking or room update failed!");
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       Alert.alert(error.message || "An error occurred during booking.");
+    } finally {
+      setIsLoading(false); // Đảm bảo cập nhật trạng thái loading
     }
-
+    const end = Date.now(); // Kết thúc đo thời gian
+    console.log(`bookingNow executed in ${end - start} ms`);
   };
+  
 
   useEffect(() => {
     const fetchData = async () => {
+      const start = Date.now();
       try {
         setIsLoading(true);
 
+        const start1 = Date.now();
         const responseHotel = await axios.get(`${API_URL}${API_URL_HOTEL}${hotelId}`);
+        const end1 = Date.now(); // Kết thúc đo thời gian
+        console.log(`HOTEL1 executed in ${end1 - start1} ms`);
+
+        const start2 = Date.now();
         const responseRoom = await axios.get(`${API_URL}${API_URL_ROOM}searchNumberRoom/${roomNumber}`);
+        const end2 = Date.now(); // Kết thúc đo thời gian
+        console.log(`ROOM1 executed in ${end2 - start2} ms`);
 
         setDataHotel(responseHotel.data);
 
@@ -98,6 +107,8 @@ const BookingHotel = ({ navigation, route }) => {
       } finally {
         setIsLoading(false);
       }
+      const end = Date.now(); // Kết thúc đo thời gian
+      console.log(`fetchData executed in ${end - start} ms`);
     };
 
     fetchData();
@@ -146,7 +157,6 @@ const BookingHotel = ({ navigation, route }) => {
       <Pressable
         style={styles.payNowButton}
         onPress={() => bookingNow()}
-        disabled={isLoading} // Vô hiệu hóa nút trong khi đang chờ phản hồi
       >
         <Text style={styles.payNowText}>Booking Now</Text>
       </Pressable>
