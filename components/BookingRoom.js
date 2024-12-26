@@ -23,8 +23,8 @@ const windowHeight = Dimensions.get('window').height;
 
 const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => {
   // const [isFilterVisible, setFilterVisible] = React.useState(false);
-  const [checkInDate, setCheckInDate] = useState(new Date(2024, 11, 12));
-  const [checkOutDate, setCheckOutDate] = useState(new Date(2024, 11, 14));
+  const [checkInDate, setCheckInDate] = useState(new Date(2024, 12, 27));
+  const [checkOutDate, setCheckOutDate] = useState(new Date(2024, 12, 28));
   const [showCheckInPicker, setShowCheckInPicker] = useState(false);
   const [showCheckOutPicker, setShowCheckOutPicker] = useState(false);
   const [room, setRoom] = useState(null); // To store the selected room number
@@ -37,20 +37,27 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
   const dateBooking = new Date()
   const [isLoading, setIsLoading] = useState(false);
 
-    // Cải tiến việc mở DateTimePicker để tránh delay
-    const handleCheckInDateChange = (event, date) => {
-      setShowCheckInPicker(false);
-      if (date) {
+  const handleCheckInDateChange = (event, date) => {
+    setShowCheckInPicker(false);
+    if (date) {
+      if (date >= checkOutDate) {
+        alert("Check-in date must be before check-out date.");
+      } else {
         setCheckInDate(date);
       }
-    };
+    }
+  };
   
-    const handleCheckOutDateChange = (event, date) => {
-      setShowCheckOutPicker(false);
-      if (date) {
+  const handleCheckOutDateChange = (event, date) => {
+    setShowCheckOutPicker(false);
+    if (date) {
+      if (date <= checkInDate) {
+        alert("Check-out date must be after check-in date.");
+      } else {
         setCheckOutDate(date);
       }
-    };
+    }
+  };
 
   const handleClose = () => {
     setModalVisible(false)
@@ -58,7 +65,7 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
 
   const handleApply = () => {
     setIsLoading(true);
-  
+    setModalVisible(false)
     // Điều hướng đến BookingHotel
     navigation.navigate('BookingHotel', {
       hotelId: hotelId,
@@ -67,7 +74,7 @@ const BookingRoom = ({ modalVisible, setModalVisible, navigation, hotelId }) => 
       checkOut: checkOutDate.toISOString(),
       dateBooking: dateBooking.toISOString(),
     });
-  
+   
     // Lắng nghe khi quá trình điều hướng hoàn tất
     const unsubscribe = navigation.addListener('transitionEnd', () => {
       setIsLoading(false);

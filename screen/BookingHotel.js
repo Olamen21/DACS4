@@ -36,9 +36,9 @@ const BookingHotel = ({ navigation, route }) => {
   };
 
   const bookingNow = async () => {
-    const start = Date.now();
-    console.log('press BookingNow');
     setIsLoading(true);
+    console.log("press BookingNow");
+    const start = Date.now();
   
     let formData = {
       id_hotel: hotelId,
@@ -54,29 +54,42 @@ const BookingHotel = ({ navigation, route }) => {
     };
   
     try {
-      // Gửi yêu cầu song song nếu có thể
-      const [bookingResponse, updateResponse] = await Promise.all([
-        axios.post(API_URL + API_URL_BOOKING, formData),
-        axios.patch(API_URL + API_URL_ROOM + roomId, form),
-      ]);
+      // Gửi yêu cầu đặt phòng trước
+      const bookingResponse = await axios.post(API_URL + API_URL_BOOKING, formData);
+      if (!bookingResponse.data) throw new Error("Booking failed!");
   
-      if (bookingResponse.data && updateResponse.data) {
-        console.log("Booking and room update successful!");
-        Alert.alert("Booking successful!");
-        navigation.navigate("Home");
-      } else {
-        throw new Error("Booking or room update failed!");
-      }
+      console.log("Booking successful!");
+      Alert.alert("Booking successful!");
+  
+      // Sau đó cập nhật trạng thái phòng
+      await axios.patch(API_URL + API_URL_ROOM, form, {
+        headers: {
+            'Content-Type': 'multipart/form-data', 
+        },
+    })
+        .then((responsive) => {
+          if (responsive.data) {
+            alert("Update room successful.");
+          }
+        }).catch((error) => {
+          console.log(error);
+          alert("An error occurred during registration.");
+      });
+
+  
+      console.log("Room update successful!");
+      navigation.navigate("Home");
     } catch (error) {
       console.error(error);
       Alert.alert(error.message || "An error occurred during booking.");
     } finally {
-      setIsLoading(false); // Đảm bảo cập nhật trạng thái loading
+      setIsLoading(false);
+      const end = Date.now();
+      console.log(`bookingNow executed in ${end - start} ms`);
     }
-    const end = Date.now(); // Kết thúc đo thời gian
-    console.log(`bookingNow executed in ${end - start} ms`);
   };
   
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,35 +97,34 @@ const BookingHotel = ({ navigation, route }) => {
       try {
         setIsLoading(true);
 
-        const start1 = Date.now();
-        const responseHotel = await axios.get(`${API_URL}${API_URL_HOTEL}${hotelId}`);
-        const end1 = Date.now(); // Kết thúc đo thời gian
-        console.log(`HOTEL1 executed in ${end1 - start1} ms`);
+        const [responseHotel, responseRoom] = await Promise.all([
+          axios.get(`${API_URL}${API_URL_HOTEL}${hotelId}`),
+          axios.get(`${API_URL}${API_URL_ROOM}searchNumberRoom/${roomNumber}`)
+        ]);
 
-        const start2 = Date.now();
-        const responseRoom = await axios.get(`${API_URL}${API_URL_ROOM}searchNumberRoom/${roomNumber}`);
-        const end2 = Date.now(); // Kết thúc đo thời gian
-        console.log(`ROOM1 executed in ${end2 - start2} ms`);
+        const end = Date.now();
+        console.log(`API calls executed in ${end - start} ms`);
 
+        // Cập nhật state
         setDataHotel(responseHotel.data);
 
         const roomData = responseRoom.data[0];
         setRoomHotel(roomData);
         setRoomId(roomData._id);
-        console.log("Booking room")
+
         const days = calculateDays(checkIn, checkOut);
         setTotalCost(days * roomData.price_per_night);
+        console.log("Booking room");
       } catch (error) {
         console.error(error);
       } finally {
         setIsLoading(false);
       }
-      const end = Date.now(); // Kết thúc đo thời gian
-      console.log(`fetchData executed in ${end - start} ms`);
     };
 
     fetchData();
   }, [hotelId, roomNumber, checkIn, checkOut]);
+
 
   if (isLoading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
@@ -128,7 +140,7 @@ const BookingHotel = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <View style={{ flexDirection: 'row' }}>
-        <Pressable onPress={() => navigation.navigate("RoomDetail", { hotelId: hotelId })}>
+        <Pressable onPress={() => navigation.goBack()}>
           <Ionicons name='chevron-back' size={30} color={'black'} style={styles.Img_back} />
         </Pressable>
         <Text style={styles.header}>Review Summary</Text>
@@ -155,11 +167,14 @@ const BookingHotel = ({ navigation, route }) => {
 
       </View>
       <Pressable
-        style={styles.payNowButton}
-        onPress={() => bookingNow()}
+        style={[styles.payNowButton, isLoading && styles.payNowButtonDisabled]}
+        onPress={() => !isLoading && bookingNow()} // Vô hiệu hóa khi đang xử lý
       >
-        <Text style={styles.payNowText}>Booking Now</Text>
+        <Text style={styles.payNowText}>
+          {isLoading ? "Processing..." : "Booking Now"}
+        </Text>
       </Pressable>
+
     </View>
   );
 };

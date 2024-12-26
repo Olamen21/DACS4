@@ -148,9 +148,9 @@ const EditProfile = ({ navigation }) => {
 
       <View style={styles.ViewImg}>
         <Image source={require('../img/avt.jpg')} style={styles.Img_user} />
-        <View style={styles.iconContainer}>
+        {/* <View style={styles.iconContainer}>
           <Entypo name='camera' size={30} color={'white'} style={styles.Img_camera} />
-        </View>
+        </View> */}
       </View>
 
       <View style={styles.main}>

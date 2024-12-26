@@ -3,7 +3,7 @@ const bookingController = require('../controllers/bookingController');
 
 router.get('/', bookingController.getAllBooking)
 router.get('/:id', bookingController.getBooking)
-router.get('/search/:key', bookingController.searchBooking);
+router.get('/search/:id_user', bookingController.searchBooking);
 
 router.post('/', bookingController.createBooking)
 

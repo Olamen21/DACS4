@@ -240,7 +240,7 @@ const Signup = ({ navigation }) => {
         }}>
 
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             // onPress={()=> onGoogleButtonPress()}
             style={styles.TouchGoogle}>
             <Image
@@ -253,7 +253,7 @@ const Signup = ({ navigation }) => {
               resizeMode='contain'
             />
             <Text style={{ color: COLORS.black }}>Google</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         <View style={{
