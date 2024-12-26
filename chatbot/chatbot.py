@@ -250,8 +250,8 @@ def book_room(hotel_name, room_type, customer_name, phone, check_in_date, check_
             "phone"             : phone,
             "id_hotel"          : hotel["_id"],
             "id_room"           : room["_id"],
-            "check_in_date"     : check_in_date,
-            "check_out_date"    : check_out_date,
+            "check_in"          : check_in_date,
+            "check_out"         : check_out_date,
             "total_cost"        : room["price_per_night"]
         }
         bookings_collection.insert_one(booking)
